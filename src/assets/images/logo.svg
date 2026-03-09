@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="96" viewBox="0 0 320 96" fill="none">
+  <rect x="0" y="0" width="320" height="96" rx="28" fill="#FFF7EB"/>
+  <circle cx="52" cy="48" r="26" fill="#FECF5B"/>
+  <path d="M42 45c0-7 5-12 12-12h2c7 0 12 5 12 12v2c0 7-5 12-12 12h-2c-7 0-12-5-12-12v-2Z" fill="#F76B45"/>
+  <text x="92" y="56" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="28" font-weight="700" fill="#3C2A21">EduEats</text>
+</svg>
