@@ -7,12 +7,33 @@ import { getOrderHistory } from '../../../api/modules/ordersApi.js';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
-
+import chapatiBeans from '../../../assets/images/meals/chapatibeans.jpeg';
+import fishUgali from '../../../assets/images/meals/fishugali.jpeg';
+import riceBeans from '../../../assets/images/meals/ricebeans.jpeg';
+import pilau from '../../../assets/images/meals/pilau.jpeg';
+import mandazi from '../../../assets/images/meals/mandazi.jpeg';
+import uji from '../../../assets/images/meals/uji.jpg';
+import eggsToast from '../../../assets/images/meals/eggtoast.jpg';
+import ugaliBeef from '../../../assets/images/meals/ugalibeef.jpeg';
+import riceChicken from '../../../assets/images/meals/ricestew.jpeg';
+import matumbo from '../../../assets/images/meals/matumbo.jpeg';
 const CATEGORIES = [
   { id: 'breakfast', label: 'Breakfast' },
   { id: 'lunch', label: 'Lunch' },
   { id: 'dinner', label: 'Dinner' },
 ];
+const mealImages = {
+  'chapati + beans': chapatiBeans,
+  'fish + ugali': fishUgali,
+  'beans + rice': riceBeans,
+  pilau: pilau,
+  mandazi: mandazi,
+  uji: uji,
+  'eggs + toast': eggsToast,
+  'ugali + beef': ugaliBeef,
+  'rice + chicken stew': riceChicken,
+  matumbo: matumbo,
+};
 
 function greeting() {
   const h = new Date().getHours();
@@ -112,13 +133,14 @@ export default function StudentHomePage() {
               <Link
                 key={m.id}
                 to="/student/menu"
-                className="flex w-36 shrink-0 flex-col overflow-hidden rounded-card bg-edueats-surface shadow-card"
+                className="flex w-36 shrink-0 flex-col overflow-hidden rounded-card bg-edueats-surface shadow-card transform transition duration-300 hover:scale-105 hover:shadow-lg"
               >
                 <div className="h-24 bg-edueats-border">
                   <img
-                    src={m.image_url || m.imageUrl || foodPlaceholder}
-                    alt=""
-                    className="h-full w-full object-cover"
+                  
+                    src={mealImages[m.name?.toLowerCase()] || foodPlaceholder}
+                    alt={m.name}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                     loading="lazy"
                     decoding="async"
                     onError={(e) => {
