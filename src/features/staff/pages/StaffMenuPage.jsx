@@ -5,7 +5,7 @@ import { canManageMenu } from '../../../auth/accessControl.js';
 import { getMenu, updateMenuItem } from '../../../api/modules/menuApi.js';
 import Card from '../../../components/Card.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
-import { FiEdit2 } from 'react-icons/fi';
+import { FiEdit2, FiPlus } from 'react-icons/fi';
 
 export default function StaffMenuPage() {
   const { roles } = useAuth();
@@ -44,10 +44,8 @@ export default function StaffMenuPage() {
       <header className="rounded-b-card bg-edueats-primary px-6 pt-10 pb-4">
         <div className="flex items-center justify-between">
           <Link to="/staff/orders" className="text-edueats-text">Back</Link>
-          <h1 className="text-xl font-semibold text-edueats-text">Menu Management</h1>
-          <Link to="/staff/menu" className="rounded-full bg-edueats-accent px-4 py-2 text-sm font-medium text-white">
-            Add Meal
-          </Link>
+          <h1 className="text-xl font-semibold text-edueats-text truncate">Menu Management</h1>
+          <div className="w-8"></div>
         </div>
       </header>
 
@@ -104,6 +102,15 @@ export default function StaffMenuPage() {
           </div>
         )}
       </div>
+      
+      {/* Floating Add Button */}
+      <Link
+        to="/staff/menu/add"
+        className="fixed bottom-20 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-edueats-accent text-white shadow-lg hover:bg-edueats-accent/90 hover:shadow-xl transition-all duration-300 hover:scale-110 z-50"
+        aria-label="Add Meal"
+      >
+        <FiPlus className="text-xl font-bold" />
+      </Link>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { getOrderHistory } from '../../../api/modules/ordersApi.js';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
+import { FiCreditCard, FiShoppingCart, FiTrendingUp, FiArrowUp } from 'react-icons/fi';
 
 const CATEGORIES = [
   { id: 'breakfast', label: 'Breakfast' },
@@ -60,22 +61,46 @@ export default function StudentHomePage() {
         <h1 className="text-xl font-semibold text-edueats-text">
           {greeting()}, {name}
         </h1>
-        <Card className="mt-4 bg-edueats-surfaceAlt/90">
-          <p className="text-sm text-edueats-textMuted">Wallet Balance</p>
-          <p className="text-2xl font-bold text-edueats-text">Ksh {balance}</p>
-          <div className="mt-3 flex gap-2">
-            <Link to="/student/menu" className="flex-1">
-              <Button variant="secondary" className="w-full text-sm">
-                Order Now
-              </Button>
-            </Link>
-            <Link to="/student/wallet" className="flex-1">
-              <Button variant="secondary" className="w-full text-sm">
-                Top Up
-              </Button>
-            </Link>
-          </div>
-        </Card>
+        <div className="mt-4">
+          <Card className="bg-gradient-to-br from-edueats-primary to-edueats-primaryDeep border-0 shadow-lg relative overflow-hidden">
+            {/* Decorative background pattern */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+            
+            {/* Card content */}
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                    <FiCreditCard className="text-lg text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white/90">Available Balance</p>
+                    <p className="text-3xl font-bold text-white">Ksh {balance.toLocaleString()}</p>
+                  </div>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                  <FiTrendingUp className="text-xl text-white" />
+                </div>
+              </div>
+              
+              {/* Action buttons */}
+              <div className="flex gap-2">
+                <Link to="/student/menu" className="flex-1">
+                  <Button className="w-full bg-white text-edueats-primaryDeep hover:bg-white/90 transition-all duration-200 font-bold shadow-lg hover:shadow-xl transform hover:scale-105">
+                    Order
+                  </Button>
+                </Link>
+                <Link to="/student/wallet" className="flex-1">
+                  <Button variant="secondary" className="w-full bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30 transition-all duration-200 font-semibold">
+                    <FiArrowUp className="mr-2" />
+                    Top Up
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
+        </div>
         <div className="mt-4">
           <input
             type="search"
@@ -88,7 +113,7 @@ export default function StudentHomePage() {
       </header>
 
       <div className="px-6 py-4">
-        <h2 className="text-sm font-medium text-edueats-textMuted">Categories</h2>
+        {/* <h2 className="text-sm font-medium text-edueats-textMuted">Categories</h2>
         <div className="mt-2 flex gap-3 overflow-x-auto pb-2">
           {CATEGORIES.map((c) => (
             <Link
@@ -99,7 +124,7 @@ export default function StudentHomePage() {
               <span className="text-xs font-medium text-edueats-text">{c.label}</span>
             </Link>
           ))}
-        </div>
+        </div> */}
 
         <h2 className="mt-6 text-lg font-semibold text-edueats-text">Best Seller</h2>
         {loading ? (
@@ -107,28 +132,57 @@ export default function StudentHomePage() {
         ) : filtered.length === 0 ? (
           <p className="py-4 text-sm text-edueats-textMuted">No items</p>
         ) : (
-          <div className="mt-2 flex gap-4 overflow-x-auto pb-4">
+          <div className="mt-3 flex gap-3 overflow-x-auto pb-6 px-4">
             {filtered.map((m) => (
               <Link
                 key={m.id}
-                to="/student/menu"
-                className="flex w-36 shrink-0 flex-col overflow-hidden rounded-card bg-edueats-surface shadow-card"
+                to={`/student/menu/${m.id}`}
+                className="flex w-36 shrink-0 overflow-hidden rounded-xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
               >
-                <div className="h-24 bg-edueats-border">
+                {/* Meal Image - Full Height */}
+                <div className="relative h-full min-h-48 bg-gradient-to-br from-edueats-border to-edueats-surface overflow-hidden">
+                  {/* Out of Stock Badge */}
+                  {!(m.available !== false && m.in_stock !== false) && (
+                    <div className="absolute top-2 left-2 right-2 z-10">
+                      <div className="bg-edueats-danger text-white text-xs font-bold px-3 py-1 rounded-full text-center">
+                        Out of Stock
+                      </div>
+                    </div>
+                  )}
+                  
                   <img
                     src={m.image_url || m.imageUrl || foodPlaceholder}
-                    alt=""
-                    className="h-full w-full object-cover"
+                    alt={m.name}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                     loading="lazy"
                     decoding="async"
                     onError={(e) => {
                       e.currentTarget.src = foodPlaceholder;
                     }}
                   />
-                </div>
-                <div className="p-2">
-                  <p className="text-sm font-medium text-edueats-text truncate">{m.name}</p>
-                  <p className="text-xs text-edueats-textMuted">Ksh {m.price}</p>
+                  
+                  {/* Overlay for text */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                  
+                  {/* Content Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                    <h3 className="text-sm font-bold truncate leading-tight mb-1">
+                      {m.name}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-medium">Ksh {m.price}</p>
+                      <div className="flex items-center gap-1">
+                        <div className={`w-2 h-2 rounded-full ${
+                          m.available !== false && m.in_stock !== false
+                            ? 'bg-edueats-success'
+                            : 'bg-edueats-danger'
+                        }`}></div>
+                        <span className="text-xs">
+                          {m.available !== false && m.in_stock !== false ? 'Available' : ''}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </Link>
             ))}

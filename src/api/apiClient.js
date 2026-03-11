@@ -98,6 +98,12 @@ const mockMatch = (method, path, body) => {
   if (path === '/menu/' && method === 'GET') {
     return Promise.resolve(MOCK_MENU);
   }
+  if (path.match(/^\/menu\/\d+\/$/) && method === 'GET') {
+    const id = parseInt(path.match(/\d+/)[0]);
+    const item = MOCK_MENU.find(m => m.id === id);
+    if (item) return Promise.resolve(item);
+    return Promise.reject(mockNormalizedError(404, 'Menu item not found'));
+  }
   if (path === '/orders/history/' && method === 'GET') {
     return Promise.resolve(MOCK_ORDERS_HISTORY);
   }

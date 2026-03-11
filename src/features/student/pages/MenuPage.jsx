@@ -79,46 +79,52 @@ export default function MenuPage() {
             {filtered.map((m) => {
               const available = m.available !== false && m.in_stock !== false;
               return (
-                <Card key={m.id} className="flex flex-row items-center gap-4">
-                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-edueats-border">
-                    <img
-                      src={m.image_url || m.imageUrl || foodPlaceholder}
-                      alt=""
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                      decoding="async"
-                      onError={(e) => {
-                        e.currentTarget.src = foodPlaceholder;
-                      }}
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-edueats-text">{m.name}</p>
-                    <p className="text-xs text-edueats-textMuted">
-                      {m.meal_type ?? m.mealType ?? 'Lunch'}
-                    </p>
-                    <p className="text-sm font-medium text-edueats-text">Ksh {m.price}</p>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end gap-2">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        available
-                          ? 'bg-edueats-success/20 text-edueats-success'
-                          : 'bg-edueats-danger/20 text-edueats-danger'
-                      }`}
-                    >
-                      {available ? 'Available' : 'Out of stock'}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={!available}
-                      onClick={() => addItem(m, 1)}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-edueats-accent text-white disabled:bg-edueats-border disabled:text-edueats-textMuted"
-                    >
-                      +
-                    </button>
-                  </div>
-                </Card>
+                <Link key={m.id} to={`/student/menu/${m.id}`} className="block">
+                  <Card className="flex flex-row items-center gap-4 transition-shadow hover:shadow-md">
+                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-edueats-border">
+                      <img
+                        src={m.image_url || m.imageUrl || foodPlaceholder}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          e.currentTarget.src = foodPlaceholder;
+                        }}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-edueats-text">{m.name}</p>
+                      <p className="text-xs text-edueats-textMuted">
+                        {m.meal_type ?? m.mealType ?? 'Lunch'}
+                      </p>
+                      <p className="text-sm font-medium text-edueats-text">Ksh {m.price}</p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          available
+                            ? 'bg-edueats-success/20 text-edueats-success'
+                            : 'bg-edueats-danger/20 text-edueats-danger'
+                        }`}
+                      >
+                        {available ? 'Available' : 'Out of stock'}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={!available}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          addItem(m, 1);
+                        }}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-edueats-accent text-white disabled:bg-edueats-border disabled:text-edueats-textMuted"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </Card>
+                </Link>
               );
             })}
           </div>

@@ -9,7 +9,7 @@ const BottomNav = ({ items }) => {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-edueats-border bg-edueats-accent/95 px-6 py-2.5 text-xs text-white">
-      <div className="mx-auto flex max-w-md items-center justify-between gap-4">
+      <div className="mx-auto flex max-w-6xl lg:max-w-5xl xl:max-w-4xl items-center justify-between gap-4">
         {items.map((item) => {
           const isActive =
             item.to === '/'

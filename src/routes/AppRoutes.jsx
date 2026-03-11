@@ -12,6 +12,7 @@ import RegisterPage from '../features/student/pages/RegisterPage.jsx';
 import LoginPage from '../features/student/pages/LoginPage.jsx';
 import StudentHomePage from '../features/student/pages/StudentHomePage.jsx';
 import MenuPage from '../features/student/pages/MenuPage.jsx';
+import MealDetailsPage from '../features/student/pages/MealDetailsPage.jsx';
 import CartPage from '../features/student/pages/CartPage.jsx';
 import WalletPage from '../features/student/pages/WalletPage.jsx';
 import LimitsPage from '../features/student/pages/LimitsPage.jsx';
@@ -23,6 +24,7 @@ import StaffLoginPage from '../features/staff/pages/StaffLoginPage.jsx';
 import StaffOrdersPage from '../features/staff/pages/StaffOrdersPage.jsx';
 import StaffPopularPage from '../features/staff/pages/StaffPopularPage.jsx';
 import StaffMenuPage from '../features/staff/pages/StaffMenuPage.jsx';
+import AddMealPage from '../features/staff/pages/AddMealPage.jsx';
 
 import AdminAnalyticsPage from '../features/admin/pages/AdminAnalyticsPage.jsx';
 import AdminReportsPage from '../features/admin/pages/AdminReportsPage.jsx';
@@ -55,6 +57,7 @@ export default function AppRoutes() {
         <Route index element={<Navigate to="home" replace />} />
         <Route path="home" element={<StudentHomePage />} />
         <Route path="menu" element={<MenuPage />} />
+        <Route path="menu/:id" element={<MealDetailsPage />} />
         <Route path="cart" element={<CartPage />} />
         <Route path="wallet" element={<WalletPage />} />
         <Route path="limits" element={<LimitsPage />} />
@@ -75,6 +78,7 @@ export default function AppRoutes() {
         <Route path="orders" element={<StaffOrdersPage />} />
         <Route path="popular" element={<StaffPopularPage />} />
         <Route path="menu" element={<StaffMenuPage />} />
+        <Route path="menu/add" element={<AddMealPage />} />
         <Route path="profile" element={<SettingsPage />} />
       </Route>
 

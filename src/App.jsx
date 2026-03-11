@@ -95,11 +95,13 @@ export function ToastProvider({ children }) {
 function App() {
   return (
     <div className="min-h-screen bg-edueats-bg text-edueats-text">
-      <CartProvider>
-        <ToastProvider>
-          <AppRoutes />
-        </ToastProvider>
-      </CartProvider>
+      <div className="mx-auto max-w-6xl lg:max-w-5xl xl:max-w-4xl">
+        <CartProvider>
+          <ToastProvider>
+            <AppRoutes />
+          </ToastProvider>
+        </CartProvider>
+      </div>
     </div>
   );
 }
