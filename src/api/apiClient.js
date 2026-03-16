@@ -74,16 +74,29 @@ const mockNormalizedError = (status, message) => {
   return err;
 };
 
+const isOneOf = (path, allowed) => allowed.includes(path);
+
 const mockMatch = (method, path, body) => {
-  if (path === '/auth/login/' && method === 'POST') {
-    const role = body?.staff_id ? 'staff' : body?.email?.includes('admin') ? 'admin' : 'student';
+  if (
+    isOneOf(path, ['/auth/login/', '/users/student/login/', '/users/staff/login/', '/users/admin/login/']) &&
+    method === 'POST'
+  ) {
+    const role =
+      path === '/users/staff/login/' || body?.staff_id
+        ? 'staff'
+        : path === '/users/admin/login/' || body?.email?.includes('admin')
+          ? 'admin'
+          : 'student';
     const user = getMockUserForRole(role);
     const roles = role === 'student' ? ['student'] : role === 'staff' ? ['staff'] : ['admin'];
     return Promise.resolve({ access: `mock_${role}`, token: `mock_${role}`, user, roles });
   }
-  if (path === '/auth/register/' && method === 'POST') {
+  if (isOneOf(path, ['/auth/register/', '/users/student/signup/']) && method === 'POST') {
     const user = getMockUserForRole('student');
     return Promise.resolve({ access: 'mock_student', token: 'mock_student', user, roles: ['student'] });
+  }
+  if (path === '/users/logout/' && method === 'POST') {
+    return Promise.resolve({ ok: true });
   }
   if (path === '/users/me/' && method === 'GET') {
     const token = getToken();
@@ -95,22 +108,50 @@ const mockMatch = (method, path, body) => {
     const roles = role === 'student' ? ['student'] : role === 'staff' ? ['staff'] : ['admin'];
     return Promise.resolve({ user, roles });
   }
-  if (path === '/menu/' && method === 'GET') {
+  if (isOneOf(path, ['/menu/', '/menu/meals/']) && method === 'GET') {
     return Promise.resolve(MOCK_MENU);
+  }
+  if (path === '/menu/daily/' && method === 'GET') {
+    return Promise.resolve(
+      MOCK_MENU.map((meal) => ({
+        id: meal.id,
+        meal,
+        quantity: 99,
+        available: meal.available,
+        in_stock: meal.available,
+      }))
+    );
+  }
+  if (path.match(/^\/menu\/(daily|meals)\/\d+\/$/) && method === 'GET') {
+    const id = parseInt(path.match(/\d+/)[0]);
+    const item = MOCK_MENU.find((m) => m.id === id);
+    if (!item) return Promise.reject(mockNormalizedError(404, 'Menu item not found'));
+
+    if (path.startsWith('/menu/daily/')) {
+      return Promise.resolve({
+        id,
+        meal: item,
+        quantity: 99,
+        available: item.available,
+        in_stock: item.available,
+      });
+    }
+
+    return Promise.resolve(item);
   }
   if (path.match(/^\/menu\/\d+\/$/) && method === 'GET') {
     const id = parseInt(path.match(/\d+/)[0]);
-    const item = MOCK_MENU.find(m => m.id === id);
+    const item = MOCK_MENU.find((m) => m.id === id);
     if (item) return Promise.resolve(item);
     return Promise.reject(mockNormalizedError(404, 'Menu item not found'));
   }
-  if (path === '/orders/history/' && method === 'GET') {
+  if (isOneOf(path, ['/orders/history/', '/orders/student/history/']) && method === 'GET') {
     return Promise.resolve(MOCK_ORDERS_HISTORY);
   }
-  if (path === '/orders/live/' && method === 'GET') {
+  if (isOneOf(path, ['/orders/live/', '/orders/staff/all/']) && method === 'GET') {
     return Promise.resolve(MOCK_LIVE_ORDERS);
   }
-  if (path === '/orders/' && method === 'POST') {
+  if (isOneOf(path, ['/orders/', '/orders/student/create/']) && method === 'POST') {
     let total = 0;
     try {
       const items = body?.items ?? [];
@@ -127,14 +168,36 @@ const mockMatch = (method, path, body) => {
     }
     return Promise.resolve({ id: 999, total, status: 'paid' });
   }
-  if (path.startsWith('/orders/') && path.endsWith('/status/') && method === 'PATCH') {
+  if (
+    (path.startsWith('/orders/') && path.endsWith('/status/')) ||
+    (path.startsWith('/orders/staff/') && path.endsWith('/status/'))
+  ) {
+    if (method !== 'PATCH') return null;
     return Promise.resolve(null);
   }
-  if (path === '/limits/' && method === 'POST') {
+  if ((path === '/limits/' && method === 'POST') || (path === '/wallet/limits/me/' && method === 'PATCH')) {
     return Promise.resolve({ ok: true });
   }
-  if (path === '/reports/personal/' && method === 'GET') {
+  if (isOneOf(path, ['/reports/personal/', '/reports/student/summary/']) && method === 'GET') {
     return Promise.resolve(MOCK_REPORTS_PERSONAL);
+  }
+  if (isOneOf(path, ['/reports/mess/', '/reports/staff/sales-summary/']) && method === 'GET') {
+    return Promise.resolve({
+      revenue_today: MOCK_REPORTS_MESS.revenue_today,
+      total_orders: MOCK_REPORTS_MESS.total_orders,
+    });
+  }
+  if (path.startsWith('/reports/staff/popular-meals/') && method === 'GET') {
+    return Promise.resolve(MOCK_REPORTS_MESS.ranking);
+  }
+  if (path === '/wallet/balance/' && method === 'GET') {
+    return Promise.resolve({ balance: mockUserState.balance });
+  }
+  if (path === '/wallet/topup/history/' && method === 'GET') {
+    return Promise.resolve([]);
+  }
+  if (path === '/wallet/limits/me/' && method === 'GET') {
+    return Promise.resolve({ daily_limit: mockUserState.dailyLimit, weekly_limit: 2000 });
   }
   if (path === '/reports/mess/' && method === 'GET') {
     return Promise.resolve(MOCK_REPORTS_MESS);
@@ -145,10 +208,10 @@ const mockMatch = (method, path, body) => {
   if (path === '/users/me/' && method === 'PUT') {
     return Promise.resolve(body ?? {});
   }
-  if (path === '/menu/' && method === 'POST') {
+  if (isOneOf(path, ['/menu/', '/menu/meals/']) && method === 'POST') {
     return Promise.resolve({ id: 99, ...body });
   }
-  if (path.match(/^\/menu\/\d+\/$/) && method === 'PUT') {
+  if ((path.match(/^\/menu\/\d+\/$/) && method === 'PUT') || (path.match(/^\/menu\/meals\/\d+\/$/) && method === 'PATCH')) {
     return Promise.resolve({ id: 1, ...body });
   }
   return null;
@@ -169,7 +232,24 @@ const normalizeError = async (response) => {
   } catch {
     payload = null;
   }
-  const message = payload?.message || payload?.detail || payload?.error || 'Something went wrong. Please try again.';
+
+  let derivedMessage = null;
+  if (payload && typeof payload === 'object') {
+    const firstEntry = Object.entries(payload).find(([, value]) => value != null);
+    const firstValue = firstEntry?.[1];
+    if (Array.isArray(firstValue) && firstValue.length > 0) {
+      derivedMessage = String(firstValue[0]);
+    } else if (typeof firstValue === 'string') {
+      derivedMessage = firstValue;
+    }
+  }
+
+  const message =
+    payload?.message ||
+    payload?.detail ||
+    payload?.error ||
+    derivedMessage ||
+    'Something went wrong. Please try again.';
   const details = payload && typeof payload === 'object' ? payload : null;
   return { status, message, details };
 };

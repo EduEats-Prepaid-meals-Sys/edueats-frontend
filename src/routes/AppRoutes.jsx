@@ -10,6 +10,8 @@ import AdminShell from '../layout/AdminShell.jsx';
 import SplashPage from '../features/student/pages/SplashPage.jsx';
 import RegisterPage from '../features/student/pages/RegisterPage.jsx';
 import LoginPage from '../features/student/pages/LoginPage.jsx';
+import VerifyEmailPage from '../features/student/pages/VerifyEmailPage.jsx';
+import VerifyCodePage from '../features/student/pages/VerifyCodePage.jsx';
 import StudentHomePage from '../features/student/pages/StudentHomePage.jsx';
 import MenuPage from '../features/student/pages/MenuPage.jsx';
 import MealDetailsPage from '../features/student/pages/MealDetailsPage.jsx';
@@ -44,6 +46,8 @@ export default function AppRoutes() {
       <Route path="/" element={<SplashPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/verify-code" element={<VerifyCodePage />} />
       <Route path="/staff/login" element={<StaffLoginPage />} />
 
       <Route

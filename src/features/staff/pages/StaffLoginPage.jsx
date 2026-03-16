@@ -9,6 +9,13 @@ import { useToast } from '../../../App.jsx';
 
 const IS_MOCK = import.meta.env.VITE_MOCK_MODE === 'true';
 
+const getRedirectPath = (roles = []) => {
+  const normalized = Array.isArray(roles) ? roles.map((r) => String(r).toLowerCase()) : [];
+  if (normalized.includes('admin') || normalized.includes('caterer')) return '/admin/analytics';
+  if (normalized.includes('staff') || normalized.includes('waitress')) return '/staff/orders';
+  return '/student/home';
+};
+
 export default function StaffLoginPage() {
   const navigate = useNavigate();
   const { login, devLogin } = useAuth();
@@ -28,21 +35,24 @@ export default function StaffLoginPage() {
     setError('');
     try {
       const res = await authLogin(form);
-      const token = res?.access ?? res?.token;
+      const token = res?.tokens?.access ?? res?.access ?? res?.token;
       if (!token) {
         setToast('Invalid login response', 'error');
         return;
       }
-      login({ token, user: res?.user ?? {}, roles: res?.roles ?? [] });
+      let nextUser = res?.user ?? {};
+      let nextRoles = res?.roles ?? [];
+
+      login({ token, user: nextUser, roles: nextRoles });
       try {
         const me = await getMe();
-        const userData = me?.user ?? me ?? {};
-        const rolesData = me?.roles ?? me?.user?.roles ?? res?.roles ?? [];
-        login({ token, user: userData, roles: rolesData });
+        nextUser = me?.user ?? me ?? {};
+        nextRoles = me?.roles ?? me?.user?.roles ?? res?.roles ?? [];
+        login({ token, user: nextUser, roles: nextRoles });
       } catch {
-        login({ token, user: res?.user ?? {}, roles: res?.roles ?? [] });
+        login({ token, user: nextUser, roles: nextRoles });
       }
-      navigate('/post-login');
+      navigate(getRedirectPath(nextRoles), { replace: true });
     } catch (err) {
       setError(err?.message || 'Login failed');
     } finally {

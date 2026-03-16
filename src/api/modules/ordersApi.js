@@ -4,9 +4,18 @@ import { endpoints } from '../endpoints.js';
 export const createOrder = (body) =>
   apiRequest(endpoints.orders.create, { method: 'POST', body: JSON.stringify(body) });
 
-export const getLiveOrders = () => apiRequest(endpoints.orders.live);
+const normalizeOrdersList = (payload) =>
+  (Array.isArray(payload) ? payload : payload?.results ?? payload?.orders ?? []);
 
-export const getOrderHistory = () => apiRequest(endpoints.orders.history);
+export const getLiveOrders = async () => {
+  const response = await apiRequest(endpoints.orders.live);
+  return normalizeOrdersList(response);
+};
+
+export const getOrderHistory = async () => {
+  const response = await apiRequest(endpoints.orders.history);
+  return normalizeOrdersList(response);
+};
 
 export const updateOrderStatus = (id, status) =>
   apiRequest(endpoints.orders.status(id), {

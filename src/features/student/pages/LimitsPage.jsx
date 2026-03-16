@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { setLimits } from '../../../api/modules/limitsApi.js';
+import { getMyLimits, setLimits } from '../../../api/modules/limitsApi.js';
 import { useToast } from '../../../App.jsx';
 import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
@@ -11,6 +11,15 @@ export default function LimitsPage() {
   const [daily, setDaily] = useState('');
   const [weekly, setWeekly] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getMyLimits()
+      .then((data) => {
+        if (data?.daily_limit != null) setDaily(String(data.daily_limit));
+        if (data?.weekly_limit != null) setWeekly(String(data.weekly_limit));
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -14,7 +14,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     name: '',
-    reg_number: '',
+    contact: '',
   });
   const [errors, setErrors] = useState({});
 
@@ -30,12 +30,17 @@ export default function RegisterPage() {
     setErrors({});
     try {
       await register(form);
-      setToast('Registration successful. Please log in.', 'success');
-      navigate('/login');
+      setToast('Registration successful. Verify your email to continue.', 'success');
+      navigate('/verify-email', { state: { email: form.email } });
     } catch (err) {
       const msg = err?.message || 'Registration failed';
       setToast(msg, 'error');
-      if (err?.details) setErrors(err.details);
+      if (err?.details) {
+        setErrors({
+          ...err.details,
+          contact: err.details.contact ?? err.details.mobile_number ?? err.details.phone_number ?? err.details.reg_number,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -59,12 +64,12 @@ export default function RegisterPage() {
               error={errors.name}
             />
             <Input
-              label="Registration number"
-              name="reg_number"
-              value={form.reg_number}
+              label="Contact"
+              name="contact"
+              value={form.contact}
               onChange={handleChange}
-              placeholder="Reg number"
-              error={errors.reg_number}
+              placeholder="Phone number"
+              error={errors.contact}
             />
             <Input
               label="Email"

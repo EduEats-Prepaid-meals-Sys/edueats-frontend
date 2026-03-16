@@ -11,6 +11,7 @@ export default function WalletPage() {
   const { user, refreshUser } = useAuth();
   const { setToast } = useToast();
   const [amount, setAmount] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
 
   const balance = Number(user?.wallet_balance ?? user?.balance ?? 0);
@@ -22,11 +23,16 @@ export default function WalletPage() {
       setToast('Enter a valid amount', 'error');
       return;
     }
+    if (!phoneNumber.trim()) {
+      setToast('Enter a phone number', 'error');
+      return;
+    }
     setLoading(true);
     try {
-      await topUp({ amount: value });
+      await topUp({ amount: value, phone_number: phoneNumber.trim() });
       setToast('Top-up request sent', 'success');
       setAmount('');
+      setPhoneNumber('');
       refreshUser();
     } catch (err) {
       setToast(err?.message ?? 'Top-up failed', 'error');
@@ -58,6 +64,13 @@ export default function WalletPage() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter amount"
+            />
+            <Input
+              label="Phone Number"
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="e.g. 2547XXXXXXXX"
             />
             <Button type="submit" fullWidth disabled={loading}>
               {loading ? 'Processing...' : 'Top Up'}
