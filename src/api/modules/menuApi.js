@@ -1,18 +1,37 @@
 import { apiRequest } from '../apiClient.js';
 import { endpoints } from '../endpoints.js';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+const toAbsoluteAssetUrl = (value) => {
+  if (!value || typeof value !== 'string') return undefined;
+  if (/^https?:\/\//i.test(value)) return value;
+  if (value.startsWith('/')) {
+    const origin = API_BASE_URL.replace(/\/api\/?$/, '').replace(/\/$/, '');
+    return origin ? `${origin}${value}` : value;
+  }
+  return value;
+};
+
 const normalizeDailyMenuItem = (item) => {
   if (!item || typeof item !== 'object') return item;
 
   const meal = item.meal && typeof item.meal === 'object' ? item.meal : null;
   if (!meal) return item;
 
+  // daily_menu_id is the key used for PATCH/DELETE on the daily menu entry
+  // meal_id is the primary key on the Meal catalog
   return {
     ...meal,
-    daily_menu_id: item.id,
-    quantity: item.quantity,
-    available: item.available ?? meal.available,
-    in_stock: item.in_stock ?? item.available ?? meal.in_stock,
+    id: meal.meal_id ?? meal.id,          // normalise to 'id' for display
+    meal_id: meal.meal_id ?? meal.id,     // Meal catalog PK
+    daily_menu_id: item.daily_menu_id ?? item.id,  // DailyMenu PK
+    quantity_available: item.quantity_available,
+    meal_type: meal.category ?? meal.meal_type,   // backend stores as 'category'
+    image_url: toAbsoluteAssetUrl(meal.image_url ?? meal.image ?? item.image_url ?? item.image),
+    imageUrl: toAbsoluteAssetUrl(meal.image_url ?? meal.image ?? item.image_url ?? item.image),
+    available: item.is_available ?? meal.is_active ?? true,
+    in_stock: item.stock_status !== 'out_of_stock',
   };
 };
 
@@ -40,8 +59,34 @@ export const getMenuItem = async (id) => {
   }
 };
 
-export const createMenuItem = (body) =>
+export const getMealCatalog = async () => {
+  const response = await apiRequest(endpoints.menu.meals);
+  return Array.isArray(response) ? response : response?.results ?? [];
+};
+
+// Create a meal in the catalog (POST /api/menu/meals/)
+export const createMealCatalog = (body) =>
   apiRequest(endpoints.menu.meals, { method: 'POST', body: JSON.stringify(body) });
 
-export const updateMenuItem = (id, body) =>
-  apiRequest(endpoints.menu.mealItem(id), { method: 'PATCH', body: JSON.stringify(body) });
+// Add an existing meal to today's daily menu (POST /api/menu/daily/)
+export const addToDailyMenu = (body) =>
+  apiRequest(endpoints.menu.daily, { method: 'POST', body: JSON.stringify(body) });
+
+// Kept for backward compat — creates catalog entry only
+export const createMenuItem = createMealCatalog;
+
+// Update a meal in the catalog
+export const updateMenuItem = (meal_id, body) =>
+  apiRequest(endpoints.menu.mealItem(meal_id), { method: 'PATCH', body: JSON.stringify(body) });
+
+// Update a daily menu entry (availability / quantity)
+export const updateDailyMenuEntry = (daily_menu_id, body) =>
+  apiRequest(endpoints.menu.dailyItem(daily_menu_id), { method: 'PATCH', body: JSON.stringify(body) });
+
+// Delete a meal from the catalog
+export const deleteMenuItem = (meal_id) =>
+  apiRequest(endpoints.menu.mealItem(meal_id), { method: 'DELETE' });
+
+// Remove a meal from today's daily menu
+export const deleteDailyMenuEntry = (daily_menu_id) =>
+  apiRequest(endpoints.menu.dailyItem(daily_menu_id), { method: 'DELETE' });

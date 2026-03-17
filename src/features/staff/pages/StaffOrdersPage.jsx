@@ -6,7 +6,7 @@ import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
 
 const POLL_INTERVAL_MS = 12000;
-const STATUS_FINISHED = 'finished';
+const STATUS_FINISHED = 'completed';
 
 export default function StaffOrdersPage() {
   const { setToast } = useToast();
@@ -33,16 +33,16 @@ export default function StaffOrdersPage() {
   }, [fetchOrders]);
 
   const handleMarkServed = async (order) => {
-    const oid = order.id;
+    const oid = order.order_id ?? order.id;
     setUpdatingId(oid);
-    const previous = orders.find((o) => o.id === oid);
-    setOrders((prev) => prev.filter((o) => o.id !== oid));
+    const previous = orders.find((o) => (o.order_id ?? o.id) === oid);
+    setOrders((prev) => prev.filter((o) => (o.order_id ?? o.id) !== oid));
     setClosedOrders((prev) => [...prev, { ...order, status: STATUS_FINISHED }]);
     try {
       await updateOrderStatus(oid, STATUS_FINISHED);
     } catch (err) {
       setOrders((prev) => (previous ? [previous, ...prev] : prev));
-      setClosedOrders((prev) => prev.filter((o) => o.id !== oid));
+      setClosedOrders((prev) => prev.filter((o) => (o.order_id ?? o.id) !== oid));
       setToast(err?.message ?? 'Failed to close order', 'error');
     } finally {
       setUpdatingId(null);
@@ -94,23 +94,33 @@ export default function StaffOrdersPage() {
         ) : (
           <div className="mt-4 space-y-4">
             {displayList.map((o) => (
-              <Card key={o.id} className="flex flex-row items-center justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-edueats-text">{o.meal_name ?? o.items?.[0]?.name ?? `Order #${o.id}`}</p>
-                  <p className="text-sm text-edueats-textMuted">Ksh {o.total ?? o.amount ?? '-'}</p>
-                  {o.total_orders != null && (
-                    <p className="text-xs text-edueats-textMuted">Total Orders {o.total_orders}</p>
+              <Card key={o.order_id ?? o.id} className="space-y-2 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-edueats-text">{o.meal_name ?? o.items?.[0]?.name ?? `Order #${o.order_id ?? o.id}`}</p>
+                    <p className="text-xs text-edueats-textMuted">Student ID: {o.student}</p>
+                    <p className="text-sm text-edueats-textMuted">
+                      Qty: {o.quantity ?? 1} &nbsp;·&nbsp; Ksh {o.total_amount ?? o.total ?? '-'}
+                    </p>
+                    <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                      o.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                      o.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
+                      o.status === 'completed' ? 'bg-green-100 text-green-700' :
+                      'bg-edueats-border text-edueats-textMuted'
+                    }`}>
+                      {o.status}
+                    </span>
+                  </div>
+                  {tab === 'active' && (
+                    <Button
+                      variant="secondary"
+                      disabled={updatingId === (o.order_id ?? o.id)}
+                      onClick={() => handleMarkServed(o)}
+                    >
+                      {updatingId === (o.order_id ?? o.id) ? '...' : 'Mark Served'}
+                    </Button>
                   )}
                 </div>
-                {tab === 'active' && (
-                  <Button
-                    variant="secondary"
-                    disabled={updatingId === o.id}
-                    onClick={() => handleMarkServed(o)}
-                  >
-                    {updatingId === o.id ? '...' : 'Mark Served'}
-                  </Button>
-                )}
               </Card>
             ))}
           </div>

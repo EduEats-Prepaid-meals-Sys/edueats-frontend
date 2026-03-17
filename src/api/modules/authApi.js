@@ -50,6 +50,21 @@ export const register = async (body = {}) => {
   throw lastError;
 };
 
+export const registerStaff = async (body = {}) => {
+  const payload = cleanPayload({
+    email: body.email,
+    password: body.password,
+    full_name: body.full_name ?? body.name,
+    mobile_number: body.mobile_number ?? body.contact ?? body.phone_number,
+    role: body.role,   // 'caterer' or 'waitress'
+    staff_id: body.staff_id,
+  });
+  return apiRequest(endpoints.auth.staffSignup, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+};
+
 export const login = async (body = {}) => {
   const isStaffLogin = Boolean(body?.staff_id);
   const isAdminLogin = body?.role === 'admin' || body?.is_admin === true;

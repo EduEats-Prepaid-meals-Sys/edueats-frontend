@@ -6,7 +6,8 @@ export const endpoints = {
     staffLogin: '/users/staff/login/',
     adminLogin: '/users/admin/login/',
     studentSignup: '/users/student/signup/',
-    verifyEmail: '/users/verify-email',
+    staffSignup: '/users/signup/',
+    verifyEmail: '/users/verify-email/',
     logout: '/users/logout/',
   },
   users: {
@@ -20,6 +21,8 @@ export const endpoints = {
   },
   orders: {
     create: '/orders/student/create/',
+    checkout: '/orders/student/checkout/',
+    deleteDraft: (id) => `/orders/student/${id}/delete/`,
     history: '/orders/student/history/',
     live: '/orders/staff/all/',
     status: (id) => `/orders/staff/${id}/status/`,

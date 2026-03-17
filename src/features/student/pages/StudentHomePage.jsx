@@ -4,10 +4,11 @@ import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { useCart } from '../../../App.jsx';
 import { getMenu } from '../../../api/modules/menuApi.js';
 import { getOrderHistory } from '../../../api/modules/ordersApi.js';
+import { downloadReceipt, canDownloadReceipt } from '../../../utils/receiptUtils.js';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
-import { FiCreditCard, FiShoppingCart, FiTrendingUp, FiArrowUp } from 'react-icons/fi';
+import { FiCreditCard, FiShoppingCart, FiTrendingUp, FiArrowUp, FiDownload } from 'react-icons/fi';
 
 const CATEGORIES = [
   { id: 'breakfast', label: 'Breakfast' },
@@ -203,13 +204,24 @@ export default function StudentHomePage() {
           <div className="mt-2 space-y-2">
             {history.slice(0, 5).map((o) => (
               <Card key={o.id} className="flex flex-row items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-edueats-text">Order #{o.id}</p>
                   <p className="text-xs text-edueats-textMuted">
                     Ksh {o.total ?? o.amount ?? '-'}
                   </p>
                 </div>
-                <span className="text-xs text-edueats-textMuted">{o.status ?? 'Paid'}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-edueats-textMuted">{o.status ?? 'Paid'}</span>
+                  {canDownloadReceipt(o) && (
+                    <button
+                      onClick={() => downloadReceipt(o, user?.name || user?.username || 'Student')}
+                      className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-edueats-accent hover:bg-edueats-surface rounded transition-colors"
+                      title="Download receipt"
+                    >
+                      <FiDownload className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
               </Card>
             ))}
           </div>

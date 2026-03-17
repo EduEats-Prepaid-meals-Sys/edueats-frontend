@@ -18,11 +18,12 @@ export const useToast = () => {
 };
 
 const cartItem = (item, qty) => ({
-  menuItemId: item.id,
+  menuItemId: item.id ?? item.meal_id,
+  daily_menu_id: item.daily_menu_id,   // needed for order creation
   quantity: qty,
   name: item.name || item.title || 'Item',
   price: Number(item.price) || 0,
-  meal_type: item.meal_type || item.mealType || '',
+  meal_type: item.meal_type || item.category || item.mealType || '',
 });
 
 export function CartProvider({ children }) {

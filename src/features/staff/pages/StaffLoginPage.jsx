@@ -92,7 +92,10 @@ export default function StaffLoginPage() {
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-edueats-textMuted">
-            Don&apos;t have an account? <Link to="/register" className="text-edueats-accent">Sign Up</Link>
+            Don&apos;t have an account? <Link to="/staff/register" className="text-edueats-accent">Sign Up</Link>
+          </p>
+          <p className="mt-2 text-center text-sm text-edueats-textMuted">
+            Student account? <Link to="/login" className="text-edueats-accent">Student Log In</Link>
           </p>
           {IS_MOCK && devLogin && (
             <div className="mt-6 border-t border-edueats-border pt-4">

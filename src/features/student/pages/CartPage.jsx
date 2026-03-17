@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { useCart, useToast } from '../../../App.jsx';
-import { createOrder } from '../../../api/modules/ordersApi.js';
+import { createOrder, checkoutOrder } from '../../../api/modules/ordersApi.js';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
 import Modal from '../../../components/Modal.jsx';
@@ -27,10 +27,23 @@ export default function CartPage() {
     setInsufficientBalance(false);
     setLimitExceeded(false);
     try {
-      const payload = {
-        items: items.map((i) => ({ menu_item_id: i.menuItemId, quantity: i.quantity })),
-      };
-      await createOrder(payload);
+      // New 2-step flow: create draft per item, then checkout the last one
+      // (Backend merges duplicates for the same daily_menu entry)
+      let lastOrderId = null;
+      for (const i of items) {
+        // menuItemId holds the daily_menu_id after normalization
+        const res = await createOrder({
+          daily_menu_id: i.daily_menu_id ?? i.menuItemId,
+          quantity: i.quantity,
+        });
+        lastOrderId = res?.order?.order_id ?? res?.order_id ?? lastOrderId;
+      }
+
+      // Checkout: deducts wallet and sets status to pending
+      if (lastOrderId) {
+        await checkoutOrder(lastOrderId);
+      }
+
       clear();
       setOrderPlaced(true);
       setToast('Order placed successfully', 'success');

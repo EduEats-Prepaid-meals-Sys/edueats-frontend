@@ -23,6 +23,7 @@ import ReportsPage from '../features/student/pages/ReportsPage.jsx';
 import SettingsPage from '../features/student/pages/SettingsPage.jsx';
 
 import StaffLoginPage from '../features/staff/pages/StaffLoginPage.jsx';
+import StaffRegisterPage from '../features/staff/pages/StaffRegisterPage.jsx';
 import StaffOrdersPage from '../features/staff/pages/StaffOrdersPage.jsx';
 import StaffPopularPage from '../features/staff/pages/StaffPopularPage.jsx';
 import StaffMenuPage from '../features/staff/pages/StaffMenuPage.jsx';
@@ -49,6 +50,7 @@ export default function AppRoutes() {
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/verify-code" element={<VerifyCodePage />} />
       <Route path="/staff/login" element={<StaffLoginPage />} />
+      <Route path="/staff/register" element={<StaffRegisterPage />} />
 
       <Route
         path="/student"

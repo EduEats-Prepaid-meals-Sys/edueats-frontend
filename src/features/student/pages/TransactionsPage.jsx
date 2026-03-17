@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getOrderHistory } from '../../../api/modules/ordersApi.js';
+import { downloadReceipt, canDownloadReceipt } from '../../../utils/receiptUtils.js';
+import { useAuth } from '../../../auth/AuthProvider.jsx';
 import Card from '../../../components/Card.jsx';
+import { FiDownload } from 'react-icons/fi';
 
 export default function TransactionsPage() {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +36,7 @@ export default function TransactionsPage() {
           <div className="space-y-2">
             {orders.map((o) => (
               <Card key={o.id} className="flex flex-row items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <p className="font-medium text-edueats-text">Order #{o.id}</p>
                   <p className="text-xs text-edueats-textMuted">
                     {o.created_at ? new Date(o.created_at).toLocaleString() : ''}
@@ -42,6 +46,16 @@ export default function TransactionsPage() {
                   <p className="font-medium text-edueats-text">Ksh {o.total ?? o.amount ?? '-'}</p>
                   <span className="text-xs text-edueats-textMuted">{o.status ?? ''}</span>
                 </div>
+                {canDownloadReceipt(o) && (
+                  <button
+                    onClick={() => downloadReceipt(o, user?.name || user?.username || 'Student')}
+                    className="ml-3 flex items-center gap-1 px-2 py-1 text-xs font-medium text-edueats-accent hover:bg-edueats-surface rounded transition-colors"
+                    title="Download receipt"
+                  >
+                    <FiDownload className="w-4 h-4" />
+                    <span className="hidden sm:inline">Receipt</span>
+                  </button>
+                )}
               </Card>
             ))}
           </div>

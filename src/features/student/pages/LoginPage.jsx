@@ -98,6 +98,9 @@ export default function LoginPage() {
           <p className="mt-4 text-center text-sm text-edueats-textMuted">
             Don&apos;t have an account? <Link to="/register" className="text-edueats-accent">Sign Up</Link>
           </p>
+          <p className="mt-2 text-center text-sm text-edueats-textMuted">
+            Staff account? <Link to="/staff/login" className="text-edueats-accent">Staff Log In</Link>
+          </p>
           {IS_MOCK && devLogin && (
             <div className="mt-6 border-t border-edueats-border pt-4">
               <p className="mb-2 text-xs font-medium uppercase text-edueats-textMuted">Dev Test Mode</p>
