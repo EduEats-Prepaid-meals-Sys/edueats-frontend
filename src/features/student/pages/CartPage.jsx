@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { useCart, useToast } from '../../../App.jsx';
 import { createOrder, checkoutOrder } from '../../../api/modules/ordersApi.js';
+import { mapApiError } from '../../../utils/errorMessages.js';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
 import Modal from '../../../components/Modal.jsx';
@@ -14,9 +15,7 @@ export default function CartPage() {
   const { setToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [insufficientBalance, setInsufficientBalance] = useState(false);
-  const [limitExceeded, setLimitExceeded] = useState(false);
-  const [limitMessage, setLimitMessage] = useState('');
+  const [orderError, setOrderError] = useState(null); // { title, detail, action, actionPath, category }
 
   const balance = Number(user?.wallet_balance ?? user?.balance ?? 0);
   const balanceAfter = balance - total;
@@ -24,8 +23,7 @@ export default function CartPage() {
   const handleConfirm = async () => {
     if (items.length === 0) return;
     setLoading(true);
-    setInsufficientBalance(false);
-    setLimitExceeded(false);
+    setOrderError(null);
     try {
       // New 2-step flow: create draft per item, then checkout the last one
       // (Backend merges duplicates for the same daily_menu entry)
@@ -48,15 +46,12 @@ export default function CartPage() {
       setOrderPlaced(true);
       setToast('Order placed successfully', 'success');
     } catch (err) {
-      if (err?.status === 402) {
-        setInsufficientBalance(true);
-      } else if (err?.status === 403) {
-        setLimitMessage(err?.message ?? 'Daily or weekly limit exceeded.');
-        setLimitExceeded(true);
-      } else if (err?.status === 401) {
-        return;
+      if (err?.status === 401) return;
+      const mapped = mapApiError(err, { balance, total });
+      if (mapped.category === 'business' || mapped.category === 'not_found') {
+        setOrderError(mapped);
       } else {
-        setToast(err?.message ?? 'Order failed. Try again.', 'error');
+        setToast(mapped.title + (mapped.detail ? ` — ${mapped.detail}` : ''), 'error');
       }
     } finally {
       setLoading(false);
@@ -162,35 +157,24 @@ export default function CartPage() {
       </div>
 
       <Modal
-        isOpen={insufficientBalance}
-        title="Insufficient balance"
-        onClose={() => setInsufficientBalance(false)}
-        primaryAction={{
-          label: 'Top Up Wallet',
-          onClick: () => {
-            setInsufficientBalance(false);
-            navigate('/student/wallet');
-          },
+        isOpen={orderError !== null}
+        title={orderError?.title ?? 'Order failed'}
+        onClose={() => setOrderError(null)}
+        primaryAction={orderError?.actionPath ? {
+          label: orderError.action,
+          onClick: () => { setOrderError(null); navigate(orderError.actionPath); },
+        } : {
+          label: 'OK',
+          onClick: () => setOrderError(null),
         }}
-        secondaryAction={{ label: 'Cancel', onClick: () => setInsufficientBalance(false) }}
+        secondaryAction={orderError?.actionPath ? { label: 'Cancel', onClick: () => setOrderError(null) } : undefined}
       >
-        Your wallet balance is too low for this order. Top up to continue.
-      </Modal>
-
-      <Modal
-        isOpen={limitExceeded}
-        title="Limit exceeded"
-        onClose={() => setLimitExceeded(false)}
-        primaryAction={{
-          label: 'Adjust Limits',
-          onClick: () => {
-            setLimitExceeded(false);
-            navigate('/student/limits');
-          },
-        }}
-        secondaryAction={{ label: 'Cancel', onClick: () => setLimitExceeded(false) }}
-      >
-        {limitMessage}
+        <p className="text-sm text-edueats-textMuted">
+          {orderError?.detail ?? 'Something went wrong placing your order.'}
+        </p>
+        {orderError?.action && !orderError?.actionPath && (
+          <p className="mt-2 text-xs font-medium text-edueats-textMuted">{orderError.action}</p>
+        )}
       </Modal>
     </div>
   );

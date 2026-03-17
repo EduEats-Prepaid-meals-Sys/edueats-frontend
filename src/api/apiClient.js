@@ -233,25 +233,68 @@ const normalizeError = async (response) => {
     payload = null;
   }
 
-  let derivedMessage = null;
-  if (payload && typeof payload === 'object') {
-    const firstEntry = Object.entries(payload).find(([, value]) => value != null);
-    const firstValue = firstEntry?.[1];
-    if (Array.isArray(firstValue) && firstValue.length > 0) {
-      derivedMessage = String(firstValue[0]);
-    } else if (typeof firstValue === 'string') {
-      derivedMessage = firstValue;
+  const toSentence = (text) =>
+    String(text || '')
+      .replace(/_/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const readableField = (field) => {
+    const key = String(field || '').toLowerCase();
+    if (key === 'non_field_errors' || key === 'detail') return '';
+    if (key === 'email') return 'Email';
+    if (key === 'username') return 'Username';
+    if (key === 'staff_id') return 'Staff ID';
+    if (key === 'password') return 'Password';
+    if (key.includes('wallet') || key.includes('balance')) return 'Wallet';
+    if (key.includes('limit')) return 'Spending limit';
+    return toSentence(field).replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
+  const collectMessages = (data) => {
+    if (!data || typeof data !== 'object') return [];
+
+    const list = [];
+    for (const [field, value] of Object.entries(data)) {
+      if (value == null) continue;
+      const prefix = readableField(field);
+      if (Array.isArray(value)) {
+        for (const entry of value) {
+          const msg = toSentence(entry);
+          if (!msg) continue;
+          list.push(prefix ? `${prefix}: ${msg}` : msg);
+        }
+      } else if (typeof value === 'string') {
+        const msg = toSentence(value);
+        if (!msg) continue;
+        list.push(prefix ? `${prefix}: ${msg}` : msg);
+      }
     }
+    return list;
+  };
+
+  let rawMessages = [];
+  if (payload && typeof payload === 'object') {
+    rawMessages = collectMessages(payload);
   }
+
+  const derivedMessage = rawMessages.length > 0 ? rawMessages.slice(0, 3).join(' | ') : null;
 
   const message =
     payload?.message ||
     payload?.detail ||
     payload?.error ||
     derivedMessage ||
+    (status === 401 ? 'Wrong email/username/staff ID or password.' : null) ||
+    (status === 402 ? 'Insufficient wallet balance.' : null) ||
+    (status === 403 ? 'You have reached your maximum spending limit.' : null) ||
     'Something went wrong. Please try again.';
+
+  // Store raw message list so mapApiError() can pattern-match individual messages
+  if (rawMessages.length === 0 && message) rawMessages = [message];
+
   const details = payload && typeof payload === 'object' ? payload : null;
-  return { status, message, details };
+  return { status, message, rawMessages, details };
 };
 
 const realApiRequest = async (path, options = {}) => {

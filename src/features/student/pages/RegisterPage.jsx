@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
+import ErrorBanner from '../../../components/ErrorBanner.jsx';
+import { mapApiError, mapFieldErrors } from '../../../utils/errorMessages.js';
 import { register } from '../../../api/modules/authApi.js';
 import { useToast } from '../../../App.jsx';
 
@@ -17,11 +19,13 @@ export default function RegisterPage() {
     contact: '',
   });
   const [errors, setErrors] = useState({});
+  const [bannerError, setBannerError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
     if (errors[name]) setErrors((e) => ({ ...e, [name]: '' }));
+    setBannerError(null);
   };
 
   const handleSubmit = async (e) => {
@@ -33,14 +37,12 @@ export default function RegisterPage() {
       setToast('Registration successful. Verify your email to continue.', 'success');
       navigate('/verify-email', { state: { email: form.email } });
     } catch (err) {
-      const msg = err?.message || 'Registration failed';
-      setToast(msg, 'error');
-      if (err?.details) {
-        setErrors({
-          ...err.details,
-          contact: err.details.contact ?? err.details.mobile_number ?? err.details.phone_number ?? err.details.reg_number,
-        });
+      const fieldErrors = mapFieldErrors(err);
+      const { _general, ...inlineErrors } = fieldErrors;
+      if (Object.keys(inlineErrors).length > 0) {
+        setErrors(inlineErrors);
       }
+      setBannerError(mapApiError(err));
     } finally {
       setLoading(false);
     }
@@ -54,6 +56,9 @@ export default function RegisterPage() {
       </header>
       <div className="px-6 py-6">
         <Card className="max-w-md">
+          {bannerError && !Object.values(errors).some(Boolean) && (
+            <ErrorBanner error={bannerError} className="mb-4" />
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="Name"

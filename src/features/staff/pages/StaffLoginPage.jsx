@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
+import ErrorBanner from '../../../components/ErrorBanner.jsx';
+import { mapApiError } from '../../../utils/errorMessages.js';
 import { login as authLogin, getMe } from '../../../api/modules/authApi.js';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { useToast } from '../../../App.jsx';
@@ -22,17 +24,17 @@ export default function StaffLoginPage() {
   const { setToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ staff_id: '', password: '' });
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState(null);
 
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-    setError('');
+    setFormError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setFormError(null);
     try {
       const res = await authLogin(form);
       const token = res?.tokens?.access ?? res?.access ?? res?.token;
@@ -54,7 +56,7 @@ export default function StaffLoginPage() {
       }
       navigate(getRedirectPath(nextRoles), { replace: true });
     } catch (err) {
-      setError(err?.message || 'Login failed');
+      setFormError(mapApiError(err));
     } finally {
       setLoading(false);
     }
@@ -76,7 +78,6 @@ export default function StaffLoginPage() {
               value={form.staff_id}
               onChange={handleChange}
               placeholder="Enter staff ID"
-              error={error && !form.password ? error : undefined}
             />
             <Input
               label="Password"
@@ -85,8 +86,8 @@ export default function StaffLoginPage() {
               value={form.password}
               onChange={handleChange}
               placeholder="Enter password"
-              error={error && form.staff_id ? error : undefined}
             />
+            {formError && <ErrorBanner error={formError} />}
             <Button type="submit" fullWidth disabled={loading}>
               {loading ? 'Logging in...' : 'Log In'}
             </Button>

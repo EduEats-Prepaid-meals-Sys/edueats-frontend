@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
+import ErrorBanner from '../../../components/ErrorBanner.jsx';
+import { mapApiError, mapFieldErrors } from '../../../utils/errorMessages.js';
 import { registerStaff } from '../../../api/modules/authApi.js';
 import { useToast } from '../../../App.jsx';
 
@@ -25,10 +27,12 @@ export default function StaffRegisterPage() {
     staff_id: '',
   });
   const [errors, setErrors] = useState({});
+  const [bannerError, setBannerError] = useState(null);
 
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     setErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
+    setBannerError(null);
   };
 
   const validate = () => {
@@ -55,16 +59,12 @@ export default function StaffRegisterPage() {
       setToast('Account created! You can now log in.', 'success');
       navigate('/staff/login', { replace: true });
     } catch (err) {
-      const details = err?.details ?? {};
-      setErrors({
-        full_name: details.full_name?.[0],
-        email: details.email?.[0],
-        password: details.password?.[0],
-        mobile_number: details.mobile_number?.[0] ?? details.phone_number?.[0],
-        role: details.role?.[0],
-        staff_id: details.staff_id?.[0],
-        _general: err?.message,
-      });
+      const fieldErrors = mapFieldErrors(err);
+      const { _general, ...inlineErrors } = fieldErrors;
+      if (Object.keys(inlineErrors).length > 0) {
+        setErrors(inlineErrors);
+      }
+      setBannerError(mapApiError(err));
     } finally {
       setLoading(false);
     }
@@ -79,9 +79,7 @@ export default function StaffRegisterPage() {
       <div className="px-6 py-6">
         <Card className="max-w-md">
           <p className="mb-4 text-lg font-medium text-edueats-text">Create Staff Account</p>
-          {errors._general && (
-            <p className="mb-3 rounded bg-red-50 px-3 py-2 text-sm text-red-600">{errors._general}</p>
-          )}
+          {bannerError && <ErrorBanner error={bannerError} className="mb-4" />}
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="Full Name"
