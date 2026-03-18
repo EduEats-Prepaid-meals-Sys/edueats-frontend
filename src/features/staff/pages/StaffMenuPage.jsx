@@ -139,11 +139,12 @@ export default function StaffMenuPage() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {menu.map((m) => {
+            {menu.map((m, idx) => {
               const available = m.available !== false && m.in_stock !== false;
               const itemKey = m.daily_menu_id ?? m.meal_id ?? m.id;
+              const reactKey = `${itemKey ?? 'menu-item'}-${idx}`;
               return (
-                <Card key={itemKey} className="flex flex-row items-center gap-4">
+                <Card key={reactKey} className="flex flex-row items-center gap-4">
                   <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-edueats-border">
                     <img
                       src={m.image_url || m.meal_photo_url || m.imageUrl || foodPlaceholder}

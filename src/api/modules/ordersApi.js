@@ -2,9 +2,11 @@ import { apiRequest } from '../apiClient.js';
 import { endpoints } from '../endpoints.js';
 
 // Create a draft order: POST /api/orders/student/create/
-// Backend expects: { daily_menu_id, quantity }
+// Backend expects: { daily_menu_id, quantity } or { meal_id, quantity }
 export const createOrder = (body) =>
   apiRequest(endpoints.orders.create, { method: 'POST', body: JSON.stringify(body) });
+
+export const getStudentCart = () => apiRequest(endpoints.orders.cart);
 
 // Checkout a draft order: POST /api/orders/student/checkout/
 // Backend expects: { order_id }
@@ -22,7 +24,17 @@ const normalizeOrdersList = (payload) =>
   (Array.isArray(payload) ? payload : payload?.results ?? payload?.orders ?? []);
 
 export const getLiveOrders = async () => {
-  const response = await apiRequest(endpoints.orders.live);
+  try {
+    const responseToday = await apiRequest(endpoints.orders.today);
+    return normalizeOrdersList(responseToday);
+  } catch {
+    const response = await apiRequest(endpoints.orders.live);
+    return normalizeOrdersList(response);
+  }
+};
+
+export const getTodayOrders = async () => {
+  const response = await apiRequest(endpoints.orders.today);
   return normalizeOrdersList(response);
 };
 

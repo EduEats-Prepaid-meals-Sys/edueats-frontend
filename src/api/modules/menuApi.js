@@ -16,8 +16,18 @@ const toAbsoluteAssetUrl = (value) => {
 const normalizeDailyMenuItem = (item) => {
   if (!item || typeof item !== 'object') return item;
 
-  const meal = item.meal && typeof item.meal === 'object' ? item.meal : null;
-  if (!meal) return item;
+  const meal = item.meal && typeof item.meal === 'object' ? item.meal : item;
+
+  const availableRaw = item.is_available ?? item.available ?? meal.is_active ?? meal.is_available;
+  const available = availableRaw === undefined ? true : Boolean(availableRaw);
+
+  const stockStatus = item.stock_status ?? meal.stock_status;
+  const inStockRaw = item.in_stock ?? meal.in_stock;
+  const inStock = typeof inStockRaw === 'boolean'
+    ? inStockRaw
+    : stockStatus
+      ? stockStatus !== 'out_of_stock'
+      : true;
 
   // daily_menu_id is the key used for PATCH/DELETE on the daily menu entry
   // meal_id is the primary key on the Meal catalog
@@ -30,8 +40,8 @@ const normalizeDailyMenuItem = (item) => {
     meal_type: meal.category ?? meal.meal_type,   // backend stores as 'category'
     image_url: toAbsoluteAssetUrl(meal.image_url ?? meal.image ?? item.image_url ?? item.image),
     imageUrl: toAbsoluteAssetUrl(meal.image_url ?? meal.image ?? item.image_url ?? item.image),
-    available: item.is_available ?? meal.is_active ?? true,
-    in_stock: item.stock_status !== 'out_of_stock',
+    available,
+    in_stock: inStock,
   };
 };
 
@@ -55,7 +65,8 @@ export const getMenuItem = async (id) => {
     const dailyItem = await apiRequest(endpoints.menu.dailyItem(id));
     return normalizeDailyMenuItem(dailyItem);
   } catch {
-    return apiRequest(endpoints.menu.mealItem(id));
+    const mealItem = await apiRequest(endpoints.menu.mealItem(id));
+    return normalizeDailyMenuItem(mealItem);
   }
 };
 

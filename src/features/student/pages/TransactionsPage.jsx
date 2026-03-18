@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getOrderHistory } from '../../../api/modules/ordersApi.js';
+import { getStudentPaymentHistory } from '../../../api/modules/paymentsApi.js';
 import { downloadReceipt, canDownloadReceipt } from '../../../utils/receiptUtils.js';
-import { useAuth } from '../../../auth/AuthProvider.jsx';
+import { useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
 import { FiDownload } from 'react-icons/fi';
 
+const getPaymentIdentifier = (payment, index) =>
+  payment?.payment_id ?? payment?.id ?? payment?.reference ?? payment?.created_at ?? `payment-${index}`;
+
 export default function TransactionsPage() {
-  const { user } = useAuth();
-  const [orders, setOrders] = useState([]);
+  const { setToast } = useToast();
+  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getOrderHistory()
-      .then((data) => setOrders(Array.isArray(data) ? data : data?.results ?? []))
-      .catch(() => setOrders([]))
+    getStudentPaymentHistory()
+      .then((data) => setPayments(Array.isArray(data) ? data : data?.results ?? []))
+      .catch(() => setPayments([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -28,36 +31,44 @@ export default function TransactionsPage() {
       <div className="px-6 py-4">
         {loading ? (
           <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
-        ) : orders.length === 0 ? (
+        ) : payments.length === 0 ? (
           <Card>
-            <p className="text-center text-sm text-edueats-textMuted">No orders yet</p>
+            <p className="text-center text-sm text-edueats-textMuted">No payments yet</p>
           </Card>
         ) : (
           <div className="space-y-2">
-            {orders.map((o) => (
-              <Card key={o.id} className="flex flex-row items-center justify-between">
+            {payments.map((payment, index) => {
+              const paymentId = getPaymentIdentifier(payment, index);
+              return (
+              <Card key={paymentId} className="flex flex-row items-center justify-between">
                 <div className="flex-1">
-                  <p className="font-medium text-edueats-text">Order #{o.id}</p>
+                  <p className="font-medium text-edueats-text">Payment #{paymentId}</p>
                   <p className="text-xs text-edueats-textMuted">
-                    {o.created_at ? new Date(o.created_at).toLocaleString() : ''}
+                    {payment.created_at ? new Date(payment.created_at).toLocaleString() : ''}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium text-edueats-text">Ksh {o.total ?? o.amount ?? '-'}</p>
-                  <span className="text-xs text-edueats-textMuted">{o.status ?? ''}</span>
+                  <p className="font-medium text-edueats-text">Ksh {payment.total_amount ?? payment.amount ?? payment.total ?? '-'}</p>
+                  <span className="text-xs text-edueats-textMuted">{payment.status ?? 'paid'}</span>
                 </div>
-                {canDownloadReceipt(o) && (
+                {canDownloadReceipt(payment) && (
                   <button
-                    onClick={() => downloadReceipt(o, user?.name || user?.username || 'Student')}
+                    onClick={async () => {
+                      try {
+                        await downloadReceipt(payment, { actor: 'student' });
+                      } catch (err) {
+                        setToast(err?.message ?? 'Failed to download receipt', 'error');
+                      }
+                    }}
                     className="ml-3 flex items-center gap-1 px-2 py-1 text-xs font-medium text-edueats-accent hover:bg-edueats-surface rounded transition-colors"
-                    title="Download receipt"
+                    title="Download official receipt"
                   >
                     <FiDownload className="w-4 h-4" />
                     <span className="hidden sm:inline">Receipt</span>
                   </button>
                 )}
               </Card>
-            ))}
+            );})}
           </div>
         )}
       </div>

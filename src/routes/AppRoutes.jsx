@@ -12,6 +12,8 @@ import RegisterPage from '../features/student/pages/RegisterPage.jsx';
 import LoginPage from '../features/student/pages/LoginPage.jsx';
 import VerifyEmailPage from '../features/student/pages/VerifyEmailPage.jsx';
 import VerifyCodePage from '../features/student/pages/VerifyCodePage.jsx';
+import ForgotPasswordPage from '../features/student/pages/ForgotPasswordPage.jsx';
+import ResetPasswordPage from '../features/student/pages/ResetPasswordPage.jsx';
 import StudentHomePage from '../features/student/pages/StudentHomePage.jsx';
 import MenuPage from '../features/student/pages/MenuPage.jsx';
 import MealDetailsPage from '../features/student/pages/MealDetailsPage.jsx';
@@ -49,6 +51,8 @@ export default function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/verify-code" element={<VerifyCodePage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/staff/login" element={<StaffLoginPage />} />
       <Route path="/staff/register" element={<StaffRegisterPage />} />
 

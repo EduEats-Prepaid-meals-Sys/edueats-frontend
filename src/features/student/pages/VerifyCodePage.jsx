@@ -4,7 +4,7 @@ import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
 import { useToast } from '../../../App.jsx';
-import { verifyEmailCode } from '../../../api/modules/authApi.js';
+import { verifyEmailCode, resendVerificationCode } from '../../../api/modules/authApi.js';
 
 export default function VerifyCodePage() {
   const location = useLocation();
@@ -12,6 +12,7 @@ export default function VerifyCodePage() {
   const { setToast } = useToast();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const email = location.state?.email ?? '';
 
@@ -37,6 +38,22 @@ export default function VerifyCodePage() {
       setToast(err?.message ?? 'Verification failed. Please try again.', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!email) {
+      setToast('Email is missing. Please start from signup again.', 'error');
+      return;
+    }
+    setResending(true);
+    try {
+      await resendVerificationCode({ email });
+      setToast('Verification code resent.', 'success');
+    } catch (err) {
+      setToast(err?.message ?? 'Failed to resend verification code.', 'error');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -72,7 +89,15 @@ export default function VerifyCodePage() {
           </form>
 
           <p className="text-center text-sm text-edueats-textMuted">
-            Didn&apos;t receive a code? <Link to="/verify-email" className="text-edueats-accent">Check email again</Link>
+            Didn&apos;t receive a code?{' '}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resending}
+              className="text-edueats-accent disabled:opacity-60"
+            >
+              {resending ? 'Resending...' : 'Resend code'}
+            </button>
           </p>
         </Card>
       </div>

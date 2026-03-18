@@ -89,7 +89,7 @@ export default function LoginPage() {
               placeholder="Enter password"
             />
             <div className="text-right">
-              <Link to="/register" className="text-sm text-edueats-textMuted">Forgot Password?</Link>
+              <Link to="/forgot-password" className="text-sm text-edueats-textMuted">Forgot Password?</Link>
             </div>
             {formError && <ErrorBanner error={formError} />}
             <Button type="submit" fullWidth disabled={loading}>

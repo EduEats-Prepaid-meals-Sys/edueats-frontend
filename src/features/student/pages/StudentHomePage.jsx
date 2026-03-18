@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
-import { useCart } from '../../../App.jsx';
+import { useCart, useToast } from '../../../App.jsx';
 import { getMenu } from '../../../api/modules/menuApi.js';
-import { getOrderHistory } from '../../../api/modules/ordersApi.js';
+import { getStudentPaymentHistory } from '../../../api/modules/paymentsApi.js';
 import { downloadReceipt, canDownloadReceipt } from '../../../utils/receiptUtils.js';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
@@ -25,6 +25,7 @@ function greeting() {
 
 export default function StudentHomePage() {
   const { user, refreshUser } = useAuth();
+  const { setToast } = useToast();
   const { count } = useCart();
   const [menu, setMenu] = useState([]);
   const [history, setHistory] = useState([]);
@@ -36,11 +37,11 @@ export default function StudentHomePage() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getMenu().catch(() => []), getOrderHistory().catch(() => [])])
-      .then(([menuList, orderHistory]) => {
+    Promise.all([getMenu().catch(() => []), getStudentPaymentHistory().catch(() => [])])
+      .then(([menuList, paymentHistory]) => {
         if (!cancelled) {
           setMenu(Array.isArray(menuList) ? menuList : menuList?.results ?? []);
-          setHistory(Array.isArray(orderHistory) ? orderHistory : orderHistory?.results ?? []);
+          setHistory(Array.isArray(paymentHistory) ? paymentHistory : paymentHistory?.results ?? []);
         }
       })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -191,7 +192,7 @@ export default function StudentHomePage() {
         )}
 
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-edueats-text">Recent Transactions</h2>
+          <h2 className="text-lg font-semibold text-edueats-text">Recent Payments</h2>
           <Link to="/student/orders" className="text-sm text-edueats-accent">View All</Link>
         </div>
         {loading ? (
@@ -202,21 +203,27 @@ export default function StudentHomePage() {
           </Card>
         ) : (
           <div className="mt-2 space-y-2">
-            {history.slice(0, 5).map((o) => (
-              <Card key={o.id} className="flex flex-row items-center justify-between">
+            {history.slice(0, 5).map((o, index) => (
+              <Card key={o.payment_id ?? o.id ?? index} className="flex flex-row items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-edueats-text">Order #{o.id}</p>
+                  <p className="text-sm font-medium text-edueats-text">Payment #{o.payment_id ?? o.id ?? index + 1}</p>
                   <p className="text-xs text-edueats-textMuted">
-                    Ksh {o.total ?? o.amount ?? '-'}
+                    Ksh {o.total_amount ?? o.total ?? o.amount ?? '-'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-edueats-textMuted">{o.status ?? 'Paid'}</span>
+                  <span className="text-xs text-edueats-textMuted">{o.status ?? 'paid'}</span>
                   {canDownloadReceipt(o) && (
                     <button
-                      onClick={() => downloadReceipt(o, user?.name || user?.username || 'Student')}
+                      onClick={async () => {
+                        try {
+                          await downloadReceipt(o, { actor: 'student' });
+                        } catch (err) {
+                          setToast(err?.message ?? 'Failed to download receipt', 'error');
+                        }
+                      }}
                       className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-edueats-accent hover:bg-edueats-surface rounded transition-colors"
-                      title="Download receipt"
+                      title="Download official receipt"
                     >
                       <FiDownload className="w-3 h-3" />
                     </button>

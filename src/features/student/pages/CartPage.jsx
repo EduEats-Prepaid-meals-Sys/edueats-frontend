@@ -29,11 +29,11 @@ export default function CartPage() {
       // (Backend merges duplicates for the same daily_menu entry)
       let lastOrderId = null;
       for (const i of items) {
-        // menuItemId holds the daily_menu_id after normalization
-        const res = await createOrder({
-          daily_menu_id: i.daily_menu_id ?? i.menuItemId,
+        const payload = {
           quantity: i.quantity,
-        });
+          ...(i.daily_menu_id ? { daily_menu_id: i.daily_menu_id } : { meal_id: i.menuItemId }),
+        };
+        const res = await createOrder(payload);
         lastOrderId = res?.order?.order_id ?? res?.order_id ?? lastOrderId;
       }
 

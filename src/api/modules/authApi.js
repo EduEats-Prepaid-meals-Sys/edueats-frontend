@@ -65,6 +65,21 @@ export const registerStaff = async (body = {}) => {
   });
 };
 
+export const registerUnified = async (body = {}) => {
+  const payload = cleanPayload({
+    email: body.email,
+    password: body.password,
+    full_name: body.full_name ?? body.name,
+    mobile_number: body.mobile_number ?? body.contact ?? body.phone_number,
+    role: body.role,
+    staff_id: body.staff_id,
+  });
+  return apiRequest(endpoints.auth.signup, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+};
+
 export const login = async (body = {}) => {
   const isStaffLogin = Boolean(body?.staff_id);
   const isAdminLogin = body?.role === 'admin' || body?.is_admin === true;
@@ -119,10 +134,36 @@ export const getMe = async () => {
   };
 };
 
-export const updateMe = (body) =>
-  apiRequest(endpoints.users.me, { method: 'PUT', body: JSON.stringify(body) });
+export const updateMe = async (body) => {
+  try {
+    return await apiRequest(endpoints.users.me, { method: 'PATCH', body: JSON.stringify(body) });
+  } catch (err) {
+    if (err?.status !== 405 && err?.status !== 404) throw err;
+    return apiRequest(endpoints.users.me, { method: 'PUT', body: JSON.stringify(body) });
+  }
+};
+
+export const updateMyDetails = async (body, method = 'PATCH') => {
+  const normalizedMethod = method === 'PUT' ? 'PUT' : 'PATCH';
+  return apiRequest(endpoints.users.updateDetails, {
+    method: normalizedMethod,
+    body: JSON.stringify(body),
+  });
+};
 
 export const verifyEmailCode = (body) =>
   apiRequest(endpoints.auth.verifyEmail, { method: 'POST', body: JSON.stringify(body) });
+
+export const resendVerificationCode = (body) =>
+  apiRequest(endpoints.auth.resendVerification, { method: 'POST', body: JSON.stringify(body) });
+
+export const requestPasswordReset = (body) =>
+  apiRequest(endpoints.auth.forgotPassword, { method: 'POST', body: JSON.stringify(body) });
+
+export const resetPasswordWithCode = (body) =>
+  apiRequest(endpoints.auth.resetPassword, { method: 'POST', body: JSON.stringify(body) });
+
+export const adminDeleteUser = (userId) =>
+  apiRequest(endpoints.users.adminDelete(userId), { method: 'DELETE' });
 
 export const logout = () => apiRequest(endpoints.auth.logout, { method: 'POST' });
