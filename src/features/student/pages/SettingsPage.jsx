@@ -6,7 +6,6 @@ import Card from '../../../components/Card.jsx';
 import Input from '../../../components/Input.jsx';
 import { useToast } from '../../../App.jsx';
 import { getMyLimits, setLimits } from '../../../api/modules/limitsApi.js';
-import { getPersonalReport } from '../../../api/modules/reportsApi.js';
 
 const isStaff = (path) => path.startsWith('/staff');
 const isAdmin = (path) => path.startsWith('/admin');
@@ -15,14 +14,15 @@ export default function SettingsPage() {
   const { user, logout } = useAuth();
   const { setToast } = useToast();
   const location = useLocation();
-  const name = user?.name ?? user?.username ?? user?.email ?? 'User';
+  const name = user?.name ?? user?.full_name ?? user?.username ?? 'User';
   const isStudent = !isStaff(location.pathname) && !isAdmin(location.pathname);
   const roleLabel = isAdmin(location.pathname) ? 'Admin' : isStaff(location.pathname) ? 'Staff' : 'Student';
   const backTo = isStaff(location.pathname) ? '/staff/orders' : isAdmin(location.pathname) ? '/admin/analytics' : '/student/home';
 
   const [dailyLimit, setDailyLimit] = useState('');
+  const [initialDailyLimit, setInitialDailyLimit] = useState('');
+  const [isEditingLimit, setIsEditingLimit] = useState(false);
   const [limitLoading, setLimitLoading] = useState(false);
-  const [report, setReport] = useState(null);
 
   useEffect(() => {
     if (!isStudent) return;
@@ -30,15 +30,14 @@ export default function SettingsPage() {
     getMyLimits()
       .then((data) => {
         const limit = data?.daily_limit ?? data?.dailyLimit ?? '';
-        setDailyLimit(limit === null || limit === undefined ? '' : String(limit));
+        const normalized = limit === null || limit === undefined ? '' : String(limit);
+        setDailyLimit(normalized);
+        setInitialDailyLimit(normalized);
       })
       .catch(() => {
         setDailyLimit('');
+        setInitialDailyLimit('');
       });
-
-    getPersonalReport()
-      .then((data) => setReport(data ?? null))
-      .catch(() => setReport(null));
   }, [isStudent]);
 
   const handleSaveLimit = async () => {
@@ -51,6 +50,8 @@ export default function SettingsPage() {
     setLimitLoading(true);
     try {
       await setLimits({ daily_limit: value });
+      setInitialDailyLimit(String(value));
+      setIsEditingLimit(false);
       setToast('Daily limit updated.', 'success');
     } catch (err) {
       setToast(err?.message ?? 'Failed to update daily limit.', 'error');
@@ -67,10 +68,10 @@ export default function SettingsPage() {
       </header>
 
       <div className="px-6 py-6">
-        <Card className="mb-4 flex flex-row items-center gap-4">
+        <Card className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="h-16 w-16 shrink-0 rounded-full bg-edueats-border" />
-          <div>
-            <p className="font-semibold text-edueats-text uppercase">{name}</p>
+          <div className="min-w-0">
+            <p className="break-words text-base font-semibold text-edueats-text">{name}</p>
             <p className="text-sm text-edueats-textMuted">{roleLabel}</p>
           </div>
         </Card>
@@ -98,7 +99,7 @@ export default function SettingsPage() {
 
         {isStudent && (
           <Card className="mt-4 space-y-4">
-            <p className="text-xs font-medium uppercase text-edueats-textMuted">Spending & Reports</p>
+            <p className="text-xs font-medium uppercase text-edueats-textMuted">Daily Spending</p>
             <div>
               <Input
                 label="Daily Spending Limit (Ksh)"
@@ -108,25 +109,31 @@ export default function SettingsPage() {
                 value={dailyLimit}
                 onChange={(e) => setDailyLimit(e.target.value)}
                 placeholder="Enter daily limit"
+                disabled={!isEditingLimit || limitLoading}
               />
-              <div className="mt-2">
-                <Button onClick={handleSaveLimit} disabled={limitLoading}>
-                  {limitLoading ? 'Saving...' : 'Save Daily Limit'}
-                </Button>
+              <div className="mt-2 flex gap-2">
+                {!isEditingLimit ? (
+                  <Button onClick={() => setIsEditingLimit(true)} disabled={limitLoading}>
+                    Edit
+                  </Button>
+                ) : (
+                  <>
+                    <Button onClick={handleSaveLimit} disabled={limitLoading}>
+                      {limitLoading ? 'Saving...' : 'Save'}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setDailyLimit(initialDailyLimit);
+                        setIsEditingLimit(false);
+                      }}
+                      disabled={limitLoading}
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                )}
               </div>
-            </div>
-
-            <div className="rounded-lg border border-edueats-border p-3">
-              <p className="text-sm text-edueats-textMuted">Report Snapshot</p>
-              <p className="mt-1 text-sm text-edueats-text">
-                Total spent: <span className="font-medium">Ksh {report?.total_spent ?? 0}</span>
-              </p>
-              <p className="text-sm text-edueats-text">
-                Orders count: <span className="font-medium">{report?.orders_count ?? 0}</span>
-              </p>
-              <Link to="/student/reports" className="mt-2 inline-block text-sm text-edueats-accent">
-                Open full reports
-              </Link>
             </div>
           </Card>
         )}

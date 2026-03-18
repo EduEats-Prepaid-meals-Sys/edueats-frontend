@@ -4,6 +4,7 @@ import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { useCart, useToast } from '../../../App.jsx';
 import { getMenu } from '../../../api/modules/menuApi.js';
 import { getStudentPaymentHistory } from '../../../api/modules/paymentsApi.js';
+import { getOrderHistory } from '../../../api/modules/ordersApi.js';
 import { downloadReceipt, canDownloadReceipt } from '../../../utils/receiptUtils.js';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
@@ -15,6 +16,41 @@ const CATEGORIES = [
   { id: 'lunch', label: 'Lunch' },
   { id: 'dinner', label: 'Dinner' },
 ];
+
+const getOrderIdentifier = (order) =>
+  order?.order_id ?? order?.id ?? null;
+
+const getPaymentOrderIdentifier = (payment) =>
+  payment?.order_id ?? payment?.order?.order_id ?? payment?.order?.id ?? null;
+
+const getOrderedSummary = (payment, orderMap) => {
+  const orderId = getPaymentOrderIdentifier(payment);
+  const linkedOrder = orderId ? orderMap.get(orderId) : null;
+
+  if (linkedOrder?.items && Array.isArray(linkedOrder.items) && linkedOrder.items.length > 0) {
+    return linkedOrder.items
+      .slice(0, 2)
+      .map((item) => `${item.quantity ?? item.qty ?? 1}x ${item.meal_name ?? item.name ?? 'Meal'}`)
+      .join(' • ');
+  }
+
+  if (linkedOrder?.meal_name) {
+    return `${linkedOrder.quantity ?? 1}x ${linkedOrder.meal_name}`;
+  }
+
+  if (payment?.items && Array.isArray(payment.items) && payment.items.length > 0) {
+    return payment.items
+      .slice(0, 2)
+      .map((item) => `${item.quantity ?? item.qty ?? 1}x ${item.meal_name ?? item.name ?? 'Meal'}`)
+      .join(' • ');
+  }
+
+  if (payment?.meal_name) {
+    return `${payment.quantity ?? 1}x ${payment.meal_name}`;
+  }
+
+  return orderId ? `Order #${orderId}` : 'Recent order';
+};
 
 const isOrderPayment = (payment) => {
   if (!payment || typeof payment !== 'object') return false;
@@ -44,25 +80,33 @@ export default function StudentHomePage() {
   const { count } = useCart();
   const [menu, setMenu] = useState([]);
   const [history, setHistory] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const name = user?.name ?? user?.username ?? user?.email ?? 'Guest';
+  const name = user?.name ?? user?.full_name ?? user?.username ?? 'Student';
   const balance = Number(user?.wallet_balance ?? user?.balance ?? 0);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getMenu().catch(() => []), getStudentPaymentHistory().catch(() => [])])
-      .then(([menuList, paymentHistory]) => {
+    Promise.all([
+      getMenu().catch(() => []),
+      getStudentPaymentHistory().catch(() => []),
+      getOrderHistory().catch(() => []),
+    ])
+      .then(([menuList, paymentHistory, orderHistory]) => {
         if (!cancelled) {
           setMenu(Array.isArray(menuList) ? menuList : menuList?.results ?? []);
           const list = Array.isArray(paymentHistory) ? paymentHistory : paymentHistory?.results ?? [];
           setHistory(list.filter(isOrderPayment));
+          setRecentOrders(Array.isArray(orderHistory) ? orderHistory : orderHistory?.results ?? []);
         }
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
+
+  const orderMap = new Map(recentOrders.map((order) => [getOrderIdentifier(order), order]));
 
   const bestSellers = menu.slice(0, 6);
   const filtered = search.trim()
@@ -223,6 +267,9 @@ export default function StudentHomePage() {
               <Card key={o.payment_id ?? o.id ?? index} className="flex flex-row items-center justify-between">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-edueats-text">Order Payment #{o.payment_id ?? o.id ?? index + 1}</p>
+                  <p className="text-xs text-edueats-textMuted">
+                    {getOrderedSummary(o, orderMap)}
+                  </p>
                   <p className="text-xs text-edueats-textMuted">
                     Ksh {o.total_amount ?? o.total ?? o.amount ?? '-'}
                   </p>
