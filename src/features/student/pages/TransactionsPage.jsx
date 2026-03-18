@@ -6,6 +6,21 @@ import { useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
 import { FiDownload } from 'react-icons/fi';
 
+const isOrderPayment = (payment) => {
+  if (!payment || typeof payment !== 'object') return false;
+
+  const kind = String(
+    payment?.type ?? payment?.payment_type ?? payment?.category ?? payment?.reason ?? ''
+  ).toLowerCase();
+
+  if (kind.includes('topup') || kind.includes('deposit') || kind.includes('credit')) return false;
+  if (kind.includes('order') || kind.includes('meal') || kind.includes('checkout') || kind.includes('purchase')) {
+    return true;
+  }
+
+  return Boolean(payment?.order_id ?? payment?.order?.id ?? payment?.order);
+};
+
 const getPaymentIdentifier = (payment, index) =>
   payment?.payment_id ?? payment?.id ?? payment?.reference ?? payment?.created_at ?? `payment-${index}`;
 
@@ -16,7 +31,10 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     getStudentPaymentHistory()
-      .then((data) => setPayments(Array.isArray(data) ? data : data?.results ?? []))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data?.results ?? [];
+        setPayments(list.filter(isOrderPayment));
+      })
       .catch(() => setPayments([]))
       .finally(() => setLoading(false));
   }, []);
@@ -33,7 +51,7 @@ export default function TransactionsPage() {
           <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
         ) : payments.length === 0 ? (
           <Card>
-            <p className="text-center text-sm text-edueats-textMuted">No payments yet</p>
+            <p className="text-center text-sm text-edueats-textMuted">No order payments yet</p>
           </Card>
         ) : (
           <div className="space-y-2">

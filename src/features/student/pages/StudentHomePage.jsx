@@ -16,6 +16,21 @@ const CATEGORIES = [
   { id: 'dinner', label: 'Dinner' },
 ];
 
+const isOrderPayment = (payment) => {
+  if (!payment || typeof payment !== 'object') return false;
+
+  const kind = String(
+    payment?.type ?? payment?.payment_type ?? payment?.category ?? payment?.reason ?? ''
+  ).toLowerCase();
+
+  if (kind.includes('topup') || kind.includes('deposit') || kind.includes('credit')) return false;
+  if (kind.includes('order') || kind.includes('meal') || kind.includes('checkout') || kind.includes('purchase')) {
+    return true;
+  }
+
+  return Boolean(payment?.order_id ?? payment?.order?.id ?? payment?.order);
+};
+
 function greeting() {
   const h = new Date().getHours();
   if (h < 12) return 'Good Morning';
@@ -41,7 +56,8 @@ export default function StudentHomePage() {
       .then(([menuList, paymentHistory]) => {
         if (!cancelled) {
           setMenu(Array.isArray(menuList) ? menuList : menuList?.results ?? []);
-          setHistory(Array.isArray(paymentHistory) ? paymentHistory : paymentHistory?.results ?? []);
+          const list = Array.isArray(paymentHistory) ? paymentHistory : paymentHistory?.results ?? [];
+          setHistory(list.filter(isOrderPayment));
         }
       })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -199,14 +215,14 @@ export default function StudentHomePage() {
           <p className="py-4 text-sm text-edueats-textMuted">Loading...</p>
         ) : history.length === 0 ? (
           <Card className="mt-2">
-            <p className="text-sm text-edueats-textMuted">No recent orders</p>
+            <p className="text-sm text-edueats-textMuted">No recent order payments</p>
           </Card>
         ) : (
           <div className="mt-2 space-y-2">
             {history.slice(0, 5).map((o, index) => (
               <Card key={o.payment_id ?? o.id ?? index} className="flex flex-row items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-edueats-text">Payment #{o.payment_id ?? o.id ?? index + 1}</p>
+                  <p className="text-sm font-medium text-edueats-text">Order Payment #{o.payment_id ?? o.id ?? index + 1}</p>
                   <p className="text-xs text-edueats-textMuted">
                     Ksh {o.total_amount ?? o.total ?? o.amount ?? '-'}
                   </p>
