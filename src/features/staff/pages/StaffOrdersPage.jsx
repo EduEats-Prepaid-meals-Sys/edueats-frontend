@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getLiveOrders, updateOrderStatus } from '../../../api/modules/ordersApi.js';
 import { useToast } from '../../../App.jsx';
 import Button from '../../../components/Button.jsx';
@@ -35,6 +35,7 @@ const statusBadgeClass = (status) => {
 };
 
 export default function StaffOrdersPage() {
+  const navigate = useNavigate();
   const { setToast } = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,10 +103,20 @@ export default function StaffOrdersPage() {
   const servedOrders = orders.filter((o) => isServed(o));
   const displayList = tab === 'active' ? activeOrders : servedOrders;
 
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate('/staff/orders', { replace: true });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-edueats-bg">
       <header className="rounded-b-card bg-edueats-primary px-6 pt-10 pb-4">
-        <Link to="/staff/orders" className="text-edueats-text">Back</Link>
+        <button type="button" onClick={handleBack} className="text-edueats-text">
+          Back
+        </button>
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">Live Orders</h1>
         <p className="mt-1 text-sm text-edueats-textMuted">Total Orders ({orders.length})</p>
       </header>

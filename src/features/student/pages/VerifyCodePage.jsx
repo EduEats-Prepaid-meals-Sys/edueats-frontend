@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
@@ -60,7 +60,19 @@ export default function VerifyCodePage() {
   return (
     <div className="min-h-screen bg-edueats-bg">
       <header className="bg-edueats-primary px-6 py-6">
-        <Link to="/verify-email" className="text-edueats-text">Back</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else {
+              navigate('/verify-email', { replace: true });
+            }
+          }}
+          className="text-edueats-text"
+        >
+          Back
+        </button>
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">Enter Verification Code</h1>
       </header>
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { topUp } from '../../../api/modules/walletApi.js';
 import { useToast } from '../../../App.jsx';
@@ -9,6 +9,7 @@ import Card from '../../../components/Card.jsx';
 
 export default function WalletPage() {
   const { user, refreshUser } = useAuth();
+  const navigate = useNavigate();
   const { setToast } = useToast();
   const [amount, setAmount] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -19,8 +20,8 @@ export default function WalletPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const value = Number(amount);
-    if (!value || value <= 0) {
-      setToast('Enter a valid amount', 'error');
+    if (!Number.isFinite(value) || value < 10) {
+      setToast('Enter a valid amount (minimum Ksh 10).', 'error');
       return;
     }
     if (!phoneNumber.trim()) {
@@ -44,7 +45,19 @@ export default function WalletPage() {
   return (
     <div className="min-h-screen bg-edueats-bg">
       <header className="rounded-b-card bg-edueats-primary px-6 pt-10 pb-6">
-        <Link to="/student/home" className="text-edueats-text">Back</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else {
+              navigate('/student/home', { replace: true });
+            }
+          }}
+          className="text-edueats-text"
+        >
+          Back
+        </button>
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">Wallet</h1>
         <Card className="mt-4 bg-edueats-surfaceAlt/90">
           <p className="text-sm text-edueats-textMuted">Current balance</p>
@@ -59,7 +72,7 @@ export default function WalletPage() {
             <Input
               label="Amount (Ksh)"
               type="number"
-              min="1"
+              min="10"
               step="1"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
@@ -70,9 +83,9 @@ export default function WalletPage() {
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="e.g. 2547XXXXXXXX"
+              placeholder="e.g. 07XXXXXXXX"
             />
-            <Button type="submit" fullWidth disabled={loading}>
+            <Button type="submit" fullWidth disabled={loading} className="text-black">
               {loading ? 'Processing...' : 'Top Up'}
             </Button>
           </form>

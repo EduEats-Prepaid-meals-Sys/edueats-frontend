@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getMessReport } from '../../../api/modules/reportsApi.js';
 import Card from '../../../components/Card.jsx';
 
 export default function AdminReportsPage() {
+  const navigate = useNavigate();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,7 +20,19 @@ export default function AdminReportsPage() {
   return (
     <div className="min-h-screen bg-edueats-bg">
       <header className="rounded-b-card bg-edueats-primary px-6 pt-10 pb-6">
-        <Link to="/admin/analytics" className="text-edueats-text">Back</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else {
+              navigate('/admin/analytics', { replace: true });
+            }
+          }}
+          className="text-edueats-text"
+        >
+          Back
+        </button>
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">Reports</h1>
       </header>
 

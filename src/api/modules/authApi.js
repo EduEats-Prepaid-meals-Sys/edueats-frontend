@@ -166,4 +166,7 @@ export const resetPasswordWithCode = (body) =>
 export const adminDeleteUser = (userId) =>
   apiRequest(endpoints.users.adminDelete(userId), { method: 'DELETE' });
 
-export const logout = () => apiRequest(endpoints.auth.logout, { method: 'POST' });
+export const logout = (refreshToken) => {
+  if (!refreshToken) return Promise.resolve({ ok: true });
+  return apiRequest(endpoints.auth.logout, { method: 'POST', body: JSON.stringify({ refresh: refreshToken }) });
+};

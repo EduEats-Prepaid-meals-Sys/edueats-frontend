@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { canManageMenu } from '../../../auth/accessControl.js';
 import { getMenu } from '../../../api/modules/menuApi.js';
@@ -7,6 +7,7 @@ import Card from '../../../components/Card.jsx';
 
 export default function AdminMenuPage() {
   const { roles } = useAuth();
+  const navigate = useNavigate();
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +23,19 @@ export default function AdminMenuPage() {
   if (!allowed) {
     return (
       <div className="min-h-screen bg-edueats-bg px-6 py-10">
-        <Link to="/admin/analytics" className="text-edueats-text">Back</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else {
+              navigate('/admin/analytics', { replace: true });
+            }
+          }}
+          className="text-edueats-text"
+        >
+          Back
+        </button>
         <Card className="mt-4">
           <p className="text-center text-sm text-edueats-textMuted">You do not have permission to manage the menu.</p>
         </Card>

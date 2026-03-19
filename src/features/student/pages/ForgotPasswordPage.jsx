@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
 import Input from '../../../components/Input.jsx';
@@ -34,7 +34,19 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-edueats-bg">
       <header className="bg-edueats-primary px-6 py-6">
-        <Link to="/login" className="text-edueats-text">Back</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else {
+              navigate('/login', { replace: true });
+            }
+          }}
+          className="text-edueats-text"
+        >
+          Back
+        </button>
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">Forgot Password</h1>
       </header>
       <div className="px-6 py-6">

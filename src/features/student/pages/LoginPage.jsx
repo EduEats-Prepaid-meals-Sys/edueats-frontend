@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
@@ -8,8 +8,6 @@ import { mapApiError } from '../../../utils/errorMessages.js';
 import { login as authLogin, getMe } from '../../../api/modules/authApi.js';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { useToast } from '../../../App.jsx';
-
-const IS_MOCK = import.meta.env.VITE_MOCK_MODE === 'true';
 
 const getRedirectPath = (roles = []) => {
   const normalized = Array.isArray(roles) ? roles.map((r) => String(r).toLowerCase()) : [];
@@ -20,11 +18,13 @@ const getRedirectPath = (roles = []) => {
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, devLogin } = useAuth();
+  const location = useLocation();
+  const { login } = useAuth();
   const { setToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ email: '', password: '' });
   const [formError, setFormError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -38,6 +38,7 @@ export default function LoginPage() {
     try {
       const res = await authLogin(form);
       const token = res?.tokens?.access ?? res?.access ?? res?.token;
+      const refreshToken = res?.tokens?.refresh ?? res?.refresh;
       if (!token) {
         setToast('Invalid login response', 'error');
         return;
@@ -45,16 +46,21 @@ export default function LoginPage() {
       let nextUser = res?.user ?? {};
       let nextRoles = res?.roles ?? [];
 
-      login({ token, user: nextUser, roles: nextRoles });
+      login({ token, refreshToken, user: nextUser, roles: nextRoles });
       try {
         const me = await getMe();
         nextUser = me?.user ?? me ?? {};
         nextRoles = me?.roles ?? me?.user?.roles ?? res?.roles ?? [];
-        login({ token, user: nextUser, roles: nextRoles });
+        login({ token, refreshToken, user: nextUser, roles: nextRoles });
       } catch {
-        login({ token, user: nextUser, roles: nextRoles });
+        login({ token, refreshToken, user: nextUser, roles: nextRoles });
       }
-      navigate(getRedirectPath(nextRoles), { replace: true });
+      const from = location.state?.from;
+      if (from) {
+        navigate(from, { replace: true });
+      } else {
+        navigate(getRedirectPath(nextRoles), { replace: true });
+      }
     } catch (err) {
       setFormError(mapApiError(err));
     } finally {
@@ -65,7 +71,19 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-edueats-bg">
       <header className="bg-edueats-primary px-6 py-6">
-        <Link to="/" className="text-edueats-text">Back</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else {
+              navigate('/', { replace: true });
+            }
+          }}
+          className="text-edueats-text"
+        >
+          Back
+        </button>
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">Log In</h1>
       </header>
       <div className="px-6 py-6">
@@ -83,11 +101,20 @@ export default function LoginPage() {
             <Input
               label="Password"
               name="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={handleChange}
               placeholder="Enter password"
             />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="text-xs text-edueats-textMuted"
+              >
+                {showPassword ? 'Hide password' : 'Show password'}
+              </button>
+            </div>
             <div className="text-right">
               <Link to="/forgot-password" className="text-sm text-edueats-textMuted">Forgot Password?</Link>
             </div>
@@ -102,22 +129,6 @@ export default function LoginPage() {
           <p className="mt-2 text-center text-sm text-edueats-textMuted">
             Staff account? <Link to="/staff/login" className="text-edueats-accent">Staff Log In</Link>
           </p>
-          {IS_MOCK && devLogin && (
-            <div className="mt-6 border-t border-edueats-border pt-4">
-              <p className="mb-2 text-xs font-medium uppercase text-edueats-textMuted">Dev Test Mode</p>
-              <div className="flex flex-col gap-2">
-                <Button variant="secondary" onClick={() => devLogin('student')}>
-                  Continue as Student
-                </Button>
-                <Button variant="secondary" onClick={() => devLogin('staff')}>
-                  Continue as Staff
-                </Button>
-                <Button variant="secondary" onClick={() => devLogin('admin')}>
-                  Continue as Admin
-                </Button>
-              </div>
-            </div>
-          )}
         </Card>
       </div>
     </div>

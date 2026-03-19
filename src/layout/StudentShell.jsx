@@ -17,7 +17,9 @@ export default function StudentShell() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!canUseStudentApp(roles)) navigate('/staff/orders', { replace: true });
+    if (!canUseStudentApp(roles)) {
+      navigate('/post-login', { replace: true });
+    }
   }, [roles, navigate]);
 
   if (!canUseStudentApp(roles)) return null;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
 import Input from '../../../components/Input.jsx';
@@ -16,6 +16,7 @@ export default function ResetPasswordPage() {
     new_password: '',
   });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -48,7 +49,19 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-edueats-bg">
       <header className="bg-edueats-primary px-6 py-6">
-        <Link to="/forgot-password" className="text-edueats-text">Back</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else {
+              navigate('/forgot-password', { replace: true });
+            }
+          }}
+          className="text-edueats-text"
+        >
+          Back
+        </button>
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">Reset Password</h1>
       </header>
       <div className="px-6 py-6">
@@ -72,11 +85,20 @@ export default function ResetPasswordPage() {
             <Input
               label="New Password"
               name="new_password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={form.new_password}
               onChange={handleChange}
               placeholder="Enter new password"
             />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="text-xs text-edueats-textMuted"
+              >
+                {showPassword ? 'Hide password' : 'Show password'}
+              </button>
+            </div>
             <Button type="submit" fullWidth disabled={loading}>
               {loading ? 'Resetting...' : 'Reset Password'}
             </Button>

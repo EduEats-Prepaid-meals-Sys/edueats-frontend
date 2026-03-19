@@ -31,15 +31,21 @@ const normalizeDailyMenuItem = (item) => {
 
   // daily_menu_id is the key used for PATCH/DELETE on the daily menu entry
   // meal_id is the primary key on the Meal catalog
+  const primaryId = meal.meal_id ?? meal.id;
+
   return {
     ...meal,
-    id: meal.meal_id ?? meal.id,          // normalise to 'id' for display
-    meal_id: meal.meal_id ?? meal.id,     // Meal catalog PK
-    daily_menu_id: item.daily_menu_id ?? item.id,  // DailyMenu PK
+    id: primaryId,
+    meal_id: primaryId,
+    daily_menu_id: item.daily_menu_id ?? item.id,
     quantity_available: item.quantity_available,
-    meal_type: meal.category ?? meal.meal_type,   // backend stores as 'category'
-    image_url: toAbsoluteAssetUrl(meal.image_url ?? meal.image ?? item.image_url ?? item.image),
-    imageUrl: toAbsoluteAssetUrl(meal.image_url ?? meal.image ?? item.image_url ?? item.image),
+    meal_type: meal.category ?? meal.meal_type,
+    image_url: toAbsoluteAssetUrl(
+      meal.meal_photo_url ?? meal.image_url ?? meal.image ?? item.image_url ?? item.image
+    ),
+    imageUrl: toAbsoluteAssetUrl(
+      meal.meal_photo_url ?? meal.image_url ?? meal.image ?? item.image_url ?? item.image
+    ),
     available,
     in_stock: inStock,
   };
