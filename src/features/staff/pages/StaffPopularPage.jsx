@@ -1,23 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getMessReport } from '../../../api/modules/reportsApi.js';
+import { getLiveOrders } from '../../../api/modules/ordersApi.js';
 import Card from '../../../components/Card.jsx';
+
+const toAmount = (order) => Number(order?.total_amount ?? order?.total ?? order?.amount ?? 0);
+
+const isSameDay = (value) => {
+  if (!value) return true;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return true;
+  const now = new Date();
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  );
+};
+
+const isRevenueStatus = (status) => ['paid', 'served', 'completed'].includes(String(status || '').toLowerCase());
 
 export default function StaffPopularPage() {
   const [report, setReport] = useState(null);
+  const [liveOrders, setLiveOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getMessReport()
-      .then(setReport)
-      .catch(() => setReport(null))
+    Promise.all([
+      getMessReport().catch(() => null),
+      getLiveOrders().catch(() => []),
+    ])
+      .then(([mess, orders]) => {
+        setReport(mess);
+        setLiveOrders(Array.isArray(orders) ? orders : []);
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  const revenue = report?.revenue_today ?? report?.revenue ?? 0;
-  const totalOrders = report?.total_orders ?? report?.orders_count ?? 0;
+  const apiRevenue = Number(report?.revenue_today ?? report?.revenue ?? 0);
+  const derivedRevenue = liveOrders
+    .filter((order) => isRevenueStatus(order?.status) && isSameDay(order?.created_at ?? order?.ordered_at))
+    .reduce((sum, order) => sum + toAmount(order), 0);
+
+  const revenue = derivedRevenue > 0 ? derivedRevenue : apiRevenue;
+  const totalOrders = liveOrders.length > 0
+    ? liveOrders.filter((order) => isSameDay(order?.created_at ?? order?.ordered_at)).length
+    : report?.total_orders ?? report?.orders_count ?? 0;
   const ranking = report?.ranking ?? report?.top_items ?? [];
-  const chartData = report?.by_item ?? report?.items ?? ranking;
+  const usingDerivedRevenue = derivedRevenue > 0 && derivedRevenue !== apiRevenue;
 
   return (
     <div className="min-h-screen bg-edueats-bg">
@@ -31,6 +61,9 @@ export default function StaffPopularPage() {
           <Card>
             <p className="text-sm text-edueats-textMuted">Revenue Today</p>
             <p className="text-xl font-bold text-edueats-text">Ksh {revenue}</p>
+            {usingDerivedRevenue && (
+              <p className="mt-1 text-xs text-edueats-textMuted">Calculated from paid/served orders</p>
+            )}
           </Card>
           <Card>
             <p className="text-sm text-edueats-textMuted">Total Orders</p>

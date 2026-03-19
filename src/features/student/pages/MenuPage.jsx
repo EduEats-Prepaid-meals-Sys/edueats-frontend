@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getMenu } from '../../../api/modules/menuApi.js';
 import { useCart } from '../../../App.jsx';
@@ -12,6 +12,8 @@ const MEAL_TABS = [
   { id: 'dinner', label: 'Dinner' },
 ];
 
+const POLL_INTERVAL_MS = 15000; // Refresh menu every 15 seconds
+
 export default function MenuPage() {
   const [searchParams] = useSearchParams();
   const typeParam = searchParams.get('type') || 'lunch';
@@ -19,12 +21,19 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true);
   const { addItem, count } = useCart();
 
-  useEffect(() => {
+  const fetchMenu = useCallback(() => {
     getMenu()
       .then((data) => setMenu(Array.isArray(data) ? data : data?.results ?? []))
       .catch(() => setMenu([]))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchMenu();
+    // Poll for menu updates every 15 seconds so students see live changes
+    const pollId = setInterval(fetchMenu, POLL_INTERVAL_MS);
+    return () => clearInterval(pollId);
+  }, [fetchMenu]);
 
   const activeTab = MEAL_TABS.find((t) => t.id === typeParam)?.id ?? 'lunch';
   const filtered = menu.filter((m) => {

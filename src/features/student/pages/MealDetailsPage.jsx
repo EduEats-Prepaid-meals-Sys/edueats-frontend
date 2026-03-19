@@ -22,13 +22,18 @@ export default function MealDetailsPage() {
           getMenuItem(id),
           getMenu()
         ]);
-        
-        setMeal(mealData);
-        
+
         // Find similar meals (same meal type or category)
         const allMeals = Array.isArray(allMenuData) ? allMenuData : allMenuData?.results ?? [];
+        const targetId = String(id);
+        const dailyMatch = allMeals.find((m) =>
+          String(m.daily_menu_id) === targetId || String(m.meal_id ?? m.id) === targetId
+        );
+        // Prefer daily-menu shape so availability and daily_menu_id stay accurate for ordering.
+        setMeal(dailyMatch ? { ...mealData, ...dailyMatch } : mealData);
+
         const similar = allMeals.filter(m => 
-          m.id !== parseInt(id) && 
+          String(m.meal_id ?? m.id) !== targetId &&
           (m.meal_type === mealData.meal_type || m.mealType === mealData.mealType)
         ).slice(0, 4); // Limit to 4 similar meals
         

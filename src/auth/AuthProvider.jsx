@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMe } from '../api/modules/authApi.js';
+import { getMe, logout as logoutRequest } from '../api/modules/authApi.js';
 import { setUnauthorizedHandler, setMockUserState, getMockUserForRole } from '../api/apiClient.js';
 import { clearToken, getToken, setToken } from './tokenStore.js';
 
@@ -49,6 +49,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
+    logoutRequest().catch(() => {});
     clearToken();
     setUser(null);
     setRoles([]);

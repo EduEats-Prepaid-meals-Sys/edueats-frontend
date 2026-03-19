@@ -3,11 +3,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
+import ErrorBanner from '../../../components/ErrorBanner.jsx';
+import { mapApiError } from '../../../utils/errorMessages.js';
 import { login as authLogin, getMe } from '../../../api/modules/authApi.js';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { useToast } from '../../../App.jsx';
 
 const IS_MOCK = import.meta.env.VITE_MOCK_MODE === 'true';
+
+const getRedirectPath = (roles = []) => {
+  const normalized = Array.isArray(roles) ? roles.map((r) => String(r).toLowerCase()) : [];
+  if (normalized.includes('admin') || normalized.includes('caterer')) return '/admin/analytics';
+  if (normalized.includes('staff') || normalized.includes('waitress')) return '/staff/orders';
+  return '/student/home';
+};
 
 export default function StaffLoginPage() {
   const navigate = useNavigate();
@@ -15,36 +24,39 @@ export default function StaffLoginPage() {
   const { setToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ staff_id: '', password: '' });
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState(null);
 
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-    setError('');
+    setFormError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setFormError(null);
     try {
       const res = await authLogin(form);
-      const token = res?.access ?? res?.token;
+      const token = res?.tokens?.access ?? res?.access ?? res?.token;
       if (!token) {
         setToast('Invalid login response', 'error');
         return;
       }
-      login({ token, user: res?.user ?? {}, roles: res?.roles ?? [] });
+      let nextUser = res?.user ?? {};
+      let nextRoles = res?.roles ?? [];
+
+      login({ token, user: nextUser, roles: nextRoles });
       try {
         const me = await getMe();
-        const userData = me?.user ?? me ?? {};
-        const rolesData = me?.roles ?? me?.user?.roles ?? res?.roles ?? [];
-        login({ token, user: userData, roles: rolesData });
+        nextUser = me?.user ?? me ?? {};
+        nextRoles = me?.roles ?? me?.user?.roles ?? res?.roles ?? [];
+        login({ token, user: nextUser, roles: nextRoles });
       } catch {
-        login({ token, user: res?.user ?? {}, roles: res?.roles ?? [] });
+        login({ token, user: nextUser, roles: nextRoles });
       }
-      navigate('/post-login');
+      navigate(getRedirectPath(nextRoles), { replace: true });
     } catch (err) {
-      setError(err?.message || 'Login failed');
+      setFormError(mapApiError(err));
     } finally {
       setLoading(false);
     }
@@ -66,7 +78,6 @@ export default function StaffLoginPage() {
               value={form.staff_id}
               onChange={handleChange}
               placeholder="Enter staff ID"
-              error={error && !form.password ? error : undefined}
             />
             <Input
               label="Password"
@@ -75,14 +86,20 @@ export default function StaffLoginPage() {
               value={form.password}
               onChange={handleChange}
               placeholder="Enter password"
-              error={error && form.staff_id ? error : undefined}
             />
+            <div className="text-right">
+              <Link to="/forgot-password" className="text-sm text-edueats-textMuted">Forgot Password?</Link>
+            </div>
+            {formError && <ErrorBanner error={formError} />}
             <Button type="submit" fullWidth disabled={loading}>
               {loading ? 'Logging in...' : 'Log In'}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-edueats-textMuted">
-            Don&apos;t have an account? <Link to="/register" className="text-edueats-accent">Sign Up</Link>
+            Don&apos;t have an account? <Link to="/staff/register" className="text-edueats-accent">Sign Up</Link>
+          </p>
+          <p className="mt-2 text-center text-sm text-edueats-textMuted">
+            Student account? <Link to="/login" className="text-edueats-accent">Student Log In</Link>
           </p>
           {IS_MOCK && devLogin && (
             <div className="mt-6 border-t border-edueats-border pt-4">

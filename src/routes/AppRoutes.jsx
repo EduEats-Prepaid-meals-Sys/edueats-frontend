@@ -10,6 +10,10 @@ import AdminShell from '../layout/AdminShell.jsx';
 import SplashPage from '../features/student/pages/SplashPage.jsx';
 import RegisterPage from '../features/student/pages/RegisterPage.jsx';
 import LoginPage from '../features/student/pages/LoginPage.jsx';
+import VerifyEmailPage from '../features/student/pages/VerifyEmailPage.jsx';
+import VerifyCodePage from '../features/student/pages/VerifyCodePage.jsx';
+import ForgotPasswordPage from '../features/student/pages/ForgotPasswordPage.jsx';
+import ResetPasswordPage from '../features/student/pages/ResetPasswordPage.jsx';
 import StudentHomePage from '../features/student/pages/StudentHomePage.jsx';
 import MenuPage from '../features/student/pages/MenuPage.jsx';
 import MealDetailsPage from '../features/student/pages/MealDetailsPage.jsx';
@@ -21,6 +25,7 @@ import ReportsPage from '../features/student/pages/ReportsPage.jsx';
 import SettingsPage from '../features/student/pages/SettingsPage.jsx';
 
 import StaffLoginPage from '../features/staff/pages/StaffLoginPage.jsx';
+import StaffRegisterPage from '../features/staff/pages/StaffRegisterPage.jsx';
 import StaffOrdersPage from '../features/staff/pages/StaffOrdersPage.jsx';
 import StaffPopularPage from '../features/staff/pages/StaffPopularPage.jsx';
 import StaffMenuPage from '../features/staff/pages/StaffMenuPage.jsx';
@@ -44,7 +49,12 @@ export default function AppRoutes() {
       <Route path="/" element={<SplashPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/verify-code" element={<VerifyCodePage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/staff/login" element={<StaffLoginPage />} />
+      <Route path="/staff/register" element={<StaffRegisterPage />} />
 
       <Route
         path="/student"

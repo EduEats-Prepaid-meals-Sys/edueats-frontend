@@ -3,12 +3,12 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { canUseStudentApp } from '../auth/accessControl.js';
 import BottomNav from './BottomNav.jsx';
-import { FiHome, FiGrid, FiShoppingBag, FiUser } from 'react-icons/fi';
+import { FiHome, FiGrid, FiBarChart2, FiUser } from 'react-icons/fi';
 
 const STUDENT_NAV = [
   { to: '/student/home', label: 'Home', icon: <FiHome /> },
   { to: '/student/menu', label: 'Menu', icon: <FiGrid /> },
-  { to: '/student/orders', label: 'Orders', icon: <FiShoppingBag /> },
+  { to: '/student/reports', label: 'Analytics', icon: <FiBarChart2 /> },
   { to: '/student/profile', label: 'Profile', icon: <FiUser /> },
 ];
 

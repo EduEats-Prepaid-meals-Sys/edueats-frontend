@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createMenuItem } from '../../../api/modules/menuApi.js';
+import { createMealCatalog, addToDailyMenu, getMealCatalog } from '../../../api/modules/menuApi.js';
 import { useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
 import Button from '../../../components/Button.jsx';
@@ -16,16 +16,16 @@ export default function AddMealPage() {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
-    meal_type: 'lunch',
-    available: true,
-    in_stock: true,
+    category: 'lunch',
+    quantity_available: '',
     description: ''
   });
 
   const mealTypes = [
     { value: 'breakfast', label: 'Breakfast' },
     { value: 'lunch', label: 'Lunch' },
-    { value: 'dinner', label: 'Dinner' }
+    { value: 'dinner', label: 'Dinner' },
+    { value: 'snack', label: 'Snack' },
   ];
 
   const handleInputChange = (e) => {
@@ -86,27 +86,45 @@ export default function AddMealPage() {
 
     setLoading(true);
     try {
+      // Step 1: Create the meal in the catalog
       const mealData = {
         name: formData.name.trim(),
         price: price,
-        meal_type: formData.meal_type,
-        available: formData.available,
-        in_stock: formData.in_stock,
-        description: formData.description.trim()
+        category: formData.category,
+        description: formData.description.trim(),
+        is_active: true,
       };
+      let created = null;
+      try {
+        created = await createMealCatalog(mealData);
+      } catch (err) {
+        // If meal name already exists, reuse that catalog item and continue.
+        const duplicateByName =
+          err?.status === 400 &&
+          /name|exist|unique|already/i.test(String(err?.message ?? ''));
+        if (!duplicateByName) throw err;
 
-      // For now, we'll create the meal without the image
-      // In a real app, you'd upload the image to a storage service first
-      await createMenuItem(mealData);
-      
-      if (selectedFile) {
-        // TODO: Implement image upload to storage service
-        // For now, just show a success message about the meal
-        setToast('Meal added successfully! (Image upload coming soon)', 'success');
-      } else {
-        setToast('Meal added successfully!', 'success');
+        const catalog = await getMealCatalog();
+        created = catalog.find(
+          (m) => String(m?.name ?? '').trim().toLowerCase() === mealData.name.toLowerCase()
+        );
+        if (!created) throw err;
       }
-      
+
+      // Step 2: Add it to today's daily menu so students can see and order it
+      const meal_id = created?.meal_id ?? created?.id;
+      if (!meal_id) {
+        throw new Error('Unable to resolve meal ID for daily menu entry.');
+      }
+      const qty = formData.quantity_available ? parseInt(formData.quantity_available, 10) : null;
+      await addToDailyMenu({
+        meal_id,
+        menu_date: new Date().toISOString().split('T')[0],
+        ...(qty !== null ? { quantity_available: qty } : {}),
+        is_available: true,
+      });
+
+      setToast('Meal added to today\'s menu!', 'success');
       navigate('/staff/menu');
     } catch (err) {
       setToast(err?.message || 'Failed to add meal', 'error');
@@ -149,7 +167,7 @@ export default function AddMealPage() {
             </label>
           </Card>
 
-          {/* Price and Meal Type */}
+          {/* Price, Meal Category, and Quantity */}
           <div className="grid grid-cols-2 gap-4">
             <Card className="p-4">
               <label className="block">
@@ -170,10 +188,10 @@ export default function AddMealPage() {
 
             <Card className="p-4">
               <label className="block">
-                <span className="text-sm font-medium text-edueats-text mb-2 block">Meal Type</span>
+                <span className="text-sm font-medium text-edueats-text mb-2 block">Category</span>
                 <select
-                  name="meal_type"
-                  value={formData.meal_type}
+                  name="category"
+                  value={formData.category}
                   onChange={handleInputChange}
                   className="w-full rounded-lg border border-edueats-border bg-white px-3 py-2 text-sm text-edueats-text focus:outline-none focus:ring-2 focus:ring-edueats-accent"
                 >
@@ -186,6 +204,23 @@ export default function AddMealPage() {
               </label>
             </Card>
           </div>
+
+          {/* Quantity available today */}
+          <Card className="p-4">
+            <label className="block">
+              <span className="text-sm font-medium text-edueats-text mb-2 block">Quantity Available Today</span>
+              <input
+                type="number"
+                name="quantity_available"
+                value={formData.quantity_available}
+                onChange={handleInputChange}
+                placeholder="Leave blank for unlimited"
+                min="0"
+                className="w-full rounded-lg border border-edueats-border bg-white px-3 py-2 text-sm text-edueats-text placeholder:text-edueats-textMuted focus:outline-none focus:ring-2 focus:ring-edueats-accent"
+              />
+              <p className="mt-1 text-xs text-edueats-textMuted">Set to 0 to mark as out of stock immediately</p>
+            </label>
+          </Card>
 
           {/* Description */}
           <Card className="p-4">
@@ -261,33 +296,6 @@ export default function AddMealPage() {
                 </div>
               )}
             </label>
-          </Card>
-
-          {/* Availability */}
-          <Card className="p-4">
-            <span className="text-sm font-medium text-edueats-text mb-3 block">Availability</span>
-            <div className="space-y-2">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="available"
-                  checked={formData.available}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-edueats-border bg-edueats-surface text-edueats-accent focus:ring-edueats-accent"
-                />
-                <span className="text-sm text-edueats-text">Available for order</span>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="in_stock"
-                  checked={formData.in_stock}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-edueats-border bg-edueats-surface text-edueats-accent focus:ring-edueats-accent"
-                />
-                <span className="text-sm text-edueats-text">In stock</span>
-              </label>
-            </div>
           </Card>
 
           {/* Action Buttons */}
