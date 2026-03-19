@@ -8,7 +8,9 @@ export default function AdminShell() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!canUseAdminApp(roles)) navigate('/student/home', { replace: true });
+    if (!canUseAdminApp(roles)) {
+      navigate('/post-login', { replace: true });
+    }
   }, [roles, navigate]);
 
   if (!canUseAdminApp(roles)) return null;

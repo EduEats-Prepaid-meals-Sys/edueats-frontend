@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { useCart, useToast } from '../../../App.jsx';
 import { createOrder, checkoutOrder } from '../../../api/modules/ordersApi.js';
@@ -85,7 +85,19 @@ export default function CartPage() {
     <div className="min-h-screen bg-edueats-bg pb-24">
       <header className="rounded-b-card bg-edueats-primary px-6 pt-10 pb-4">
         <div className="flex items-center gap-2">
-          <Link to="/student/menu" className="text-edueats-text">Back</Link>
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.length > 2) {
+                navigate(-1);
+              } else {
+                navigate('/student/menu', { replace: true });
+              }
+            }}
+            className="text-edueats-text"
+          >
+            Back
+          </button>
           <h1 className="text-xl font-semibold text-edueats-text">My Cart</h1>
         </div>
       </header>

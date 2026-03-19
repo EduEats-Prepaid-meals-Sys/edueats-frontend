@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getPersonalReport, getStudentTrend } from '../../../api/modules/reportsApi.js';
 import { getMyLimits } from '../../../api/modules/limitsApi.js';
 import Card from '../../../components/Card.jsx';
@@ -30,6 +30,7 @@ const buildLinePath = (series, width = 320, height = 120, pad = 12) => {
 };
 
 export default function ReportsPage() {
+  const navigate = useNavigate();
   const [report, setReport] = useState(null);
   const [trend, setTrend] = useState([]);
   const [limits, setLimits] = useState(null);
@@ -84,7 +85,19 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-edueats-bg">
       <header className="rounded-b-card bg-edueats-primary px-6 pt-10 pb-6">
-        <Link to="/student/home" className="text-edueats-text">Back</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else {
+              navigate('/student/home', { replace: true });
+            }
+          }}
+          className="text-edueats-text"
+        >
+          Back
+        </button>
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">Reports</h1>
       </header>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getMyLimits, setLimits } from '../../../api/modules/limitsApi.js';
 import { useToast } from '../../../App.jsx';
 import Button from '../../../components/Button.jsx';
@@ -7,6 +7,7 @@ import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
 
 export default function LimitsPage() {
+  const navigate = useNavigate();
   const { setToast } = useToast();
   const [daily, setDaily] = useState('');
   const [weekly, setWeekly] = useState('');
@@ -45,7 +46,19 @@ export default function LimitsPage() {
   return (
     <div className="min-h-screen bg-edueats-bg">
       <header className="rounded-b-card bg-edueats-primary px-6 pt-10 pb-6">
-        <Link to="/student/home" className="text-edueats-text">Back</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else {
+              navigate('/student/home', { replace: true });
+            }
+          }}
+          className="text-edueats-text"
+        >
+          Back
+        </button>
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">Limits</h1>
       </header>
 

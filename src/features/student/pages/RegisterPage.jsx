@@ -20,6 +20,7 @@ export default function RegisterPage() {
   });
   const [errors, setErrors] = useState({});
   const [bannerError, setBannerError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,7 +52,19 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-edueats-bg">
       <header className="bg-edueats-primary px-6 py-6">
-        <Link to="/" className="text-edueats-text">Back</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+            } else {
+              navigate('/', { replace: true });
+            }
+          }}
+          className="text-edueats-text"
+        >
+          Back
+        </button>
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">New Account</h1>
       </header>
       <div className="px-6 py-6">
@@ -88,12 +101,21 @@ export default function RegisterPage() {
             <Input
               label="Password"
               name="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={handleChange}
               placeholder="Password"
               error={errors.password}
             />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="text-xs text-edueats-textMuted"
+              >
+                {showPassword ? 'Hide password' : 'Show password'}
+              </button>
+            </div>
             <Button type="submit" fullWidth disabled={loading}>
               {loading ? 'Signing up...' : 'Sign Up'}
             </Button>

@@ -1,10 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMe, logout as logoutRequest } from '../api/modules/authApi.js';
-import { setUnauthorizedHandler, setMockUserState, getMockUserForRole } from '../api/apiClient.js';
-import { clearToken, getToken, setToken } from './tokenStore.js';
+import { setUnauthorizedHandler } from '../api/apiClient.js';
+import { clearAuthTokens, getRefreshToken, getToken, setRefreshToken, setToken } from './tokenStore.js';
 
-const IS_MOCK = import.meta.env.VITE_MOCK_MODE === 'true';
 const AuthContext = createContext(undefined);
 
 export const AuthProvider = ({ children }) => {
@@ -26,7 +25,7 @@ export const AuthProvider = ({ children }) => {
         setRoles(data?.roles ?? data?.user?.roles ?? []);
       })
       .catch(() => {
-        clearToken();
+        clearAuthTokens();
         setUser(null);
         setRoles([]);
       })
@@ -35,41 +34,28 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
-      clearToken();
+      clearAuthTokens();
       setUser(null);
       setRoles([]);
       navigate('/login', { replace: true });
     });
   }, [navigate]);
 
-  const login = useCallback(({ token, user: nextUser, roles: nextRoles }) => {
+  const login = useCallback(({ token, refreshToken, user: nextUser, roles: nextRoles }) => {
     setToken(token);
+    if (refreshToken) setRefreshToken(refreshToken);
     setUser(nextUser ?? {});
     setRoles(Array.isArray(nextRoles) ? nextRoles : []);
   }, []);
 
   const logout = useCallback(() => {
-    logoutRequest().catch(() => {});
-    clearToken();
+    const refreshToken = getRefreshToken();
+    logoutRequest(refreshToken).catch(() => {});
+    clearAuthTokens();
     setUser(null);
     setRoles([]);
     navigate('/login', { replace: true });
   }, [navigate]);
-
-  const devLogin = useCallback(
-    (role) => {
-      if (!IS_MOCK) return;
-      const token = `mock_${role}`;
-      const nextUser = getMockUserForRole(role);
-      const nextRoles = role === 'student' ? ['student'] : role === 'staff' ? ['staff'] : ['admin'];
-      setMockUserState({ balance: 800, spentToday: 200, dailyLimit: 500 });
-      setToken(token);
-      setUser(nextUser);
-      setRoles(nextRoles);
-      navigate('/post-login');
-    },
-    [navigate]
-  );
 
   const refreshUser = useCallback(() => {
     const token = getToken();
@@ -92,9 +78,8 @@ export const AuthProvider = ({ children }) => {
       logout,
       refreshUser,
     };
-    if (IS_MOCK) base.devLogin = devLogin;
     return base;
-  }, [user, roles, isInitializing, login, logout, refreshUser, devLogin]);
+  }, [user, roles, isInitializing, login, logout, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

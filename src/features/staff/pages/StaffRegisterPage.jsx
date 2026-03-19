@@ -28,6 +28,7 @@ export default function StaffRegisterPage() {
   });
   const [errors, setErrors] = useState({});
   const [bannerError, setBannerError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -101,12 +102,21 @@ export default function StaffRegisterPage() {
             <Input
               label="Password"
               name="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={handleChange}
               placeholder="Create a password"
               error={errors.password}
             />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="text-xs text-edueats-textMuted"
+              >
+                {showPassword ? 'Hide password' : 'Show password'}
+              </button>
+            </div>
             <Input
               label="Phone Number"
               name="mobile_number"

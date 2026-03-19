@@ -1,22 +1,43 @@
-const ROLE_KEYS = {
+export const ROLE_KEYS = {
   student: 'student',
-  staff: 'staff',
+  caterer: 'caterer',
+  waitress: 'waitress',
   admin: 'admin',
 };
 
 const ROLE_ALIASES = {
   [ROLE_KEYS.student]: ['student'],
-  [ROLE_KEYS.staff]: ['staff', 'waitress'],
-  [ROLE_KEYS.admin]: ['admin', 'caterer'],
+  [ROLE_KEYS.caterer]: ['caterer'],
+  [ROLE_KEYS.waitress]: ['waitress', 'staff'],
+  [ROLE_KEYS.admin]: ['admin'],
 };
 
 const CAPABILITIES = {
-  [ROLE_KEYS.student]: ['student:home', 'student:orders', 'student:wallet'],
-  [ROLE_KEYS.staff]: ['staff:orders', 'staff:analytics', 'staff:menu'],
-  [ROLE_KEYS.admin]: ['admin:analytics', 'admin:reports', 'admin:menu'],
+  [ROLE_KEYS.student]: ['student:home', 'student:orders', 'student:wallet', 'reports:student'],
+  [ROLE_KEYS.caterer]: [
+    'staff:orders',
+    'staff:menu',
+    'staff:reports',
+    'wallet:staff_topups:view',
+    'wallet:staff_topups:ack',
+  ],
+  [ROLE_KEYS.waitress]: [
+    'staff:orders',
+    'staff:menu',
+    'staff:reports',
+    'wallet:staff_topups:view',
+    'wallet:staff_topups:ack',
+  ],
+  [ROLE_KEYS.admin]: [
+    'admin:analytics',
+    'admin:reports',
+    'admin:menu',
+    'staff:orders',
+    'staff:menu',
+    'wallet:staff_topups:view',
+    'wallet:staff_topups:ack',
+  ],
 };
-
-const CAPABILITY_MANAGE_MENU = 'staff:menu';
 
 const normalizeRoles = (rawRoles = []) => {
   const input = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
@@ -59,8 +80,10 @@ export const canUseAdminApp = (rawRoles) =>
   hasCapability(rawRoles, 'admin:analytics');
 
 export const canManageMenu = (rawRoles) =>
-  hasCapability(rawRoles, CAPABILITY_MANAGE_MENU) ||
-  hasCapability(rawRoles, 'admin:menu');
+  hasCapability(rawRoles, 'staff:menu') || hasCapability(rawRoles, 'admin:menu');
+
+export const canSeeStaffTopups = (rawRoles) =>
+  hasCapability(rawRoles, 'wallet:staff_topups:view');
 
 export const accessControl = {
   ROLE_KEYS,
@@ -70,4 +93,5 @@ export const accessControl = {
   canUseStaffApp,
   canUseAdminApp,
   canManageMenu,
+  canSeeStaffTopups,
 };

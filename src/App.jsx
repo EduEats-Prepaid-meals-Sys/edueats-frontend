@@ -78,9 +78,17 @@ export function CartProvider({ children }) {
 
 export function ToastProvider({ children }) {
   const [toast, setToastState] = useState({ message: '', variant: 'info' });
+  const [visible, setVisible] = useState(false);
+  const [timerId, setTimerId] = useState(null);
 
   const setToast = useCallback((message, variant = 'info') => {
-    setToastState({ message: String(message), variant });
+    const msg = String(message);
+    setToastState({ message: msg, variant });
+    setVisible(Boolean(msg));
+  }, []);
+
+  const clearToast = useCallback(() => {
+    setVisible(false);
   }, []);
 
   const value = useMemo(() => ({ toast, setToast }), [toast, setToast]);
@@ -88,7 +96,13 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <Toast message={toast.message} variant={toast.variant} />
+      <Toast
+        message={visible ? toast.message : ''}
+        variant={toast.variant}
+        onRequestClose={clearToast}
+        timerId={timerId}
+        setTimerId={setTimerId}
+      />
     </ToastContext.Provider>
   );
 }

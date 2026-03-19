@@ -30,10 +30,12 @@ import StaffOrdersPage from '../features/staff/pages/StaffOrdersPage.jsx';
 import StaffPopularPage from '../features/staff/pages/StaffPopularPage.jsx';
 import StaffMenuPage from '../features/staff/pages/StaffMenuPage.jsx';
 import AddMealPage from '../features/staff/pages/AddMealPage.jsx';
+import StaffTopupsPage from '../features/staff/pages/StaffTopupsPage.jsx';
 
 import AdminAnalyticsPage from '../features/admin/pages/AdminAnalyticsPage.jsx';
 import AdminReportsPage from '../features/admin/pages/AdminReportsPage.jsx';
 import AdminMenuPage from '../features/admin/pages/AdminMenuPage.jsx';
+import AdminLoginPage from '../features/admin/pages/AdminLoginPage.jsx';
 
 function RedirectByRole() {
   const { roles } = useAuth();
@@ -55,6 +57,7 @@ export default function AppRoutes() {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/staff/login" element={<StaffLoginPage />} />
       <Route path="/staff/register" element={<StaffRegisterPage />} />
+      <Route path="/admin/login" element={<AdminLoginPage />} />
 
       <Route
         path="/student"
@@ -89,6 +92,7 @@ export default function AppRoutes() {
         <Route path="popular" element={<StaffPopularPage />} />
         <Route path="menu" element={<StaffMenuPage />} />
         <Route path="menu/add" element={<AddMealPage />} />
+        <Route path="topups" element={<StaffTopupsPage />} />
         <Route path="profile" element={<SettingsPage />} />
       </Route>
 
