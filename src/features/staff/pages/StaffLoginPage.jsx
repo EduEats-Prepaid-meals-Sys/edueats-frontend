@@ -7,12 +7,14 @@ import ErrorBanner from '../../../components/ErrorBanner.jsx';
 import { mapApiError } from '../../../utils/errorMessages.js';
 import { login as authLogin, getMe } from '../../../api/modules/authApi.js';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
+import { canUseAdminApp, canUseStaffApp, hasCapability } from '../../../auth/accessControl.js';
 import { useToast } from '../../../App.jsx';
 
 const getRedirectPath = (roles = []) => {
-  const normalized = Array.isArray(roles) ? roles.map((r) => String(r).toLowerCase()) : [];
-  if (normalized.includes('admin') || normalized.includes('caterer')) return '/admin/analytics';
-  if (normalized.includes('staff') || normalized.includes('waitress')) return '/staff/orders';
+  if (canUseAdminApp(roles)) return '/admin/analytics';
+  if (canUseStaffApp(roles)) {
+    return hasCapability(roles, 'staff:reports') ? '/staff/dashboard' : '/staff/orders';
+  }
   return '/student/home';
 };
 

@@ -15,16 +15,11 @@ const ROLE_ALIASES = {
 const CAPABILITIES = {
   [ROLE_KEYS.student]: ['student:home', 'student:orders', 'student:wallet', 'reports:student'],
   [ROLE_KEYS.caterer]: [
-    'staff:orders',
-    'staff:menu',
     'staff:reports',
-    'wallet:staff_topups:view',
-    'wallet:staff_topups:ack',
   ],
   [ROLE_KEYS.waitress]: [
     'staff:orders',
     'staff:menu',
-    'staff:reports',
     'wallet:staff_topups:view',
     'wallet:staff_topups:ack',
   ],
@@ -34,6 +29,7 @@ const CAPABILITIES = {
     'admin:menu',
     'staff:orders',
     'staff:menu',
+    'staff:reports',
     'wallet:staff_topups:view',
     'wallet:staff_topups:ack',
   ],
@@ -74,7 +70,10 @@ export const canUseStudentApp = (rawRoles) =>
   hasCapability(rawRoles, 'student:home');
 
 export const canUseStaffApp = (rawRoles) =>
-  hasCapability(rawRoles, 'staff:orders');
+  hasCapability(rawRoles, 'staff:orders') ||
+  hasCapability(rawRoles, 'staff:menu') ||
+  hasCapability(rawRoles, 'wallet:staff_topups:view') ||
+  hasCapability(rawRoles, 'staff:reports');
 
 export const canUseAdminApp = (rawRoles) =>
   hasCapability(rawRoles, 'admin:analytics');
@@ -85,6 +84,9 @@ export const canManageMenu = (rawRoles) =>
 export const canSeeStaffTopups = (rawRoles) =>
   hasCapability(rawRoles, 'wallet:staff_topups:view');
 
+export const canSeeStaffReports = (rawRoles) =>
+  hasCapability(rawRoles, 'staff:reports');
+
 export const accessControl = {
   ROLE_KEYS,
   getCapabilitiesForRoles,
@@ -94,4 +96,5 @@ export const accessControl = {
   canUseAdminApp,
   canManageMenu,
   canSeeStaffTopups,
+  canSeeStaffReports,
 };

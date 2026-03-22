@@ -87,7 +87,7 @@ export default function StudentHomePage() {
   const name = user?.name ?? user?.full_name ?? user?.username ?? 'Student';
   const balance = Number(user?.wallet_balance ?? user?.balance ?? 0);
 
-  useEffect(() => {l
+  useEffect(() => {
     let cancelled = false;
     Promise.all([
       getMenu().catch(() => []),

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getPersonalReport, getStudentTrend } from '../../../api/modules/reportsApi.js';
 import { getMyLimits } from '../../../api/modules/limitsApi.js';
 import Card from '../../../components/Card.jsx';
+import { FiBarChart2, FiCalendar, FiDollarSign, FiShoppingBag } from 'react-icons/fi';
 
 const toNumber = (value) => {
   const parsed = Number(value);
@@ -29,26 +30,133 @@ const buildLinePath = (series, width = 320, height = 120, pad = 12) => {
     .join(' ');
 };
 
+const formatCurrency = (value) => {
+  const parsed = Number(value ?? 0);
+  if (!Number.isFinite(parsed)) return '0';
+  return parsed.toLocaleString('en-KE');
+};
+
+const monthKey = (date) => `${date.getFullYear()}-${date.getMonth()}`;
+
+const startOfWeek = (date) => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+const weeklyLabel = (weekStartDate) => {
+  const d = new Date(weekStartDate);
+  const month = d.toLocaleDateString('en-KE', { month: 'short' });
+  return `${month} ${d.getDate()}`;
+};
+
+const aggregateByWeek = (entries) => {
+  const map = new Map();
+  entries.forEach((entry) => {
+    if (!entry?.date) return;
+    const parsedDate = new Date(entry.date);
+    if (Number.isNaN(parsedDate.getTime())) return;
+    const weekStart = startOfWeek(parsedDate);
+    const key = weekStart.toISOString();
+    const current = map.get(key) ?? { label: weeklyLabel(weekStart), value: 0, date: key };
+    current.value += toNumber(entry.value);
+    map.set(key, current);
+  });
+  return Array.from(map.values())
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+};
+
+const aggregateByMonth = (entries) => {
+  const map = new Map();
+  entries.forEach((entry) => {
+    if (!entry?.date) return;
+    const parsedDate = new Date(entry.date);
+    if (Number.isNaN(parsedDate.getTime())) return;
+    const key = monthKey(parsedDate);
+    const label = parsedDate.toLocaleDateString('en-KE', { month: 'short' });
+    const current = map.get(key) ?? { label, value: 0, date: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1).toISOString() };
+    current.value += toNumber(entry.value);
+    map.set(key, current);
+  });
+  return Array.from(map.values())
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+};
+
+const periodDays = {
+  daily: 14,
+  weekly: 56,
+  monthly: 180,
+};
+
+const extractTrendEntries = (trendData) => {
+  if (Array.isArray(trendData)) return trendData;
+  if (Array.isArray(trendData?.results)) return trendData.results;
+  if (Array.isArray(trendData?.data)) return trendData.data;
+  if (Array.isArray(trendData?.trend)) return trendData.trend;
+  if (Array.isArray(trendData?.items)) return trendData.items;
+  return [];
+};
+
+const fetchTrendForPeriod = async (periodKey) => {
+  const requestedDays = periodDays[periodKey] ?? 14;
+  const attempts = [requestedDays, 30, 7];
+
+  for (const days of attempts) {
+    try {
+      const response = await getStudentTrend(days);
+      const entries = extractTrendEntries(response);
+      if (entries.length > 0 || days === attempts[attempts.length - 1]) {
+        return entries;
+      }
+    } catch {
+      // Keep trying with smaller windows if the backend rejects larger ranges.
+    }
+  }
+
+  return [];
+};
+
 export default function ReportsPage() {
   const navigate = useNavigate();
   const [report, setReport] = useState(null);
   const [trend, setTrend] = useState([]);
   const [limits, setLimits] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [trendLoading, setTrendLoading] = useState(true);
+  const [period, setPeriod] = useState('daily');
 
   useEffect(() => {
     Promise.all([
       getPersonalReport().catch(() => null),
-      getStudentTrend(7).catch(() => []),
       getMyLimits().catch(() => null),
     ])
-      .then(([summary, trendData, limitData]) => {
+      .then(([summary, limitData]) => {
         setReport(summary);
-        setTrend(Array.isArray(trendData) ? trendData : trendData?.results ?? []);
         setLimits(limitData);
       })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setTrendLoading(true);
+    fetchTrendForPeriod(period)
+      .then((entries) => {
+        if (!cancelled) setTrend(entries);
+      })
+      .catch(() => {
+        if (!cancelled) setTrend([]);
+      })
+      .finally(() => {
+        if (!cancelled) setTrendLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [period]);
 
   const dailySpend =
     report?.daily_spent ??
@@ -77,10 +185,26 @@ export default function ReportsPage() {
     date: entry?.date,
   }));
 
-  const maxTrend = Math.max(...normalizedTrend.map((entry) => entry.value), 1);
+  const weeklyTrend = aggregateByWeek(normalizedTrend).slice(-8);
+  const monthlyTrend = aggregateByMonth(normalizedTrend).slice(-6);
+
+  const selectedTrend =
+    period === 'weekly'
+      ? weeklyTrend
+      : period === 'monthly'
+        ? monthlyTrend
+        : normalizedTrend.slice(-14);
+
+  const maxTrend = Math.max(...selectedTrend.map((entry) => entry.value), 1);
   const dailyUtilization = dailyLimit > 0 ? Math.min(100, (toNumber(dailySpend) / toNumber(dailyLimit)) * 100) : 0;
-  const trendValues = normalizedTrend.map((entry) => entry.value);
+  const trendValues = selectedTrend.map((entry) => entry.value);
   const trendLinePath = buildLinePath(trendValues);
+  const totalInSelectedPeriod = trendValues.reduce((sum, value) => sum + value, 0);
+  const selectedLabel = period === 'weekly' ? 'Weekly' : period === 'monthly' ? 'Monthly' : 'Daily';
+
+  const rankingData = [...selectedTrend]
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5);
 
   return (
     <div className="min-h-screen bg-edueats-bg">
@@ -101,7 +225,7 @@ export default function ReportsPage() {
         <h1 className="mt-2 text-xl font-semibold text-edueats-text">Reports</h1>
       </header>
 
-      <div className="px-6 py-4">
+      <div className="px-5 py-4">
         {loading ? (
           <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
         ) : !report ? (
@@ -109,11 +233,132 @@ export default function ReportsPage() {
             <p className="text-center text-sm text-edueats-textMuted">No report data</p>
           </Card>
         ) : (
-          <div className="space-y-4">
-            <Card>
-              <p className="text-sm text-edueats-textMuted">Daily spending</p>
-              <p className="text-xl font-semibold text-edueats-text">Ksh {dailySpend}</p>
-              <p className="mt-1 text-xs text-edueats-textMuted">Daily limit: Ksh {dailyLimit}</p>
+          <div className="space-y-4 pb-2">
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="bg-[#EFE5AD] p-3">
+                <div className="mb-1 flex items-center gap-2 text-[11px] text-edueats-textMuted">
+                  <FiDollarSign className="text-edueats-text" />
+                  <span>{selectedLabel} Spend</span>
+                </div>
+                <p className="text-lg font-semibold text-edueats-text">Ksh {formatCurrency(totalInSelectedPeriod)}</p>
+              </Card>
+              <Card className="bg-[#F2EED8] p-3">
+                <div className="mb-1 flex items-center gap-2 text-[11px] text-edueats-textMuted">
+                  <FiShoppingBag className="text-edueats-text" />
+                  <span>Orders</span>
+                </div>
+                <p className="text-lg font-semibold text-edueats-text">{formatCurrency(report?.orders_count ?? 0)}</p>
+              </Card>
+            </div>
+
+            <Card className="p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-edueats-text">
+                  <FiCalendar />
+                  <span>My Analysis</span>
+                </div>
+                <div className="flex rounded-full border border-edueats-border bg-white p-1">
+                  {[
+                    { key: 'daily', label: 'Daily' },
+                    { key: 'weekly', label: 'Weekly' },
+                    { key: 'monthly', label: 'Monthly' },
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setPeriod(item.key)}
+                      className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                        period === item.key
+                          ? 'bg-edueats-accent text-white'
+                          : 'text-edueats-textMuted hover:text-edueats-text'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-edueats-textMuted">
+                {period === 'daily' ? 'Amount against day' : 'Amount against week'}
+              </p>
+            </Card>
+
+            <Card className="border border-edueats-text/40 bg-[#E8E8E8] p-3">
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-edueats-text">
+                <FiBarChart2 />
+                <span>{selectedLabel} Trend</span>
+              </div>
+              {trendLoading ? (
+                <p className="py-8 text-center text-sm text-edueats-textMuted">Loading trend...</p>
+              ) : selectedTrend.length === 0 ? (
+                <p className="py-8 text-center text-sm text-edueats-textMuted">No trend data available.</p>
+              ) : (
+                <div className="space-y-3">
+                  <div className="h-44 rounded-md border border-edueats-text/30 bg-[#E0E0E0] p-2">
+                    <div className="flex h-full items-end justify-between gap-2 overflow-x-auto">
+                      {selectedTrend.map((entry, idx) => {
+                        const heightPct = Math.max(8, (entry.value / maxTrend) * 100);
+                        return (
+                          <div key={entry.date ?? idx} className="flex min-w-[34px] flex-1 flex-col items-center gap-1">
+                            <span className="text-[10px] text-edueats-textMuted">{entry.value}</span>
+                            <div className="flex h-28 w-full items-end rounded-sm bg-[#D4D4D4] px-0.5">
+                              <div
+                                className="w-full rounded-sm bg-edueats-accent"
+                                style={{ height: `${heightPct}%` }}
+                                title={`${entry.label}: Ksh ${entry.value}`}
+                              />
+                            </div>
+                            <span className="truncate text-[10px] text-edueats-text">{entry.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-white p-2">
+                    <svg viewBox="0 0 320 120" className="h-28 w-full" role="img" aria-label="Personal spending trend line">
+                      <path d={trendLinePath} fill="none" stroke="currentColor" strokeWidth="3" className="text-edueats-accent" />
+                      {trendValues.map((value, idx) => {
+                        const step = trendValues.length > 1 ? (320 - 24) / (trendValues.length - 1) : 0;
+                        const x = 12 + step * idx;
+                        const y = 120 - 12 - (value / Math.max(...trendValues, 1)) * (120 - 24);
+                        return <circle key={`${idx}-${value}`} cx={x} cy={y} r="3" className="fill-edueats-accent" />;
+                      })}
+                    </svg>
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            <section>
+              <h2 className="mb-2 text-sm font-medium text-edueats-text">Top Periods</h2>
+              <div className="space-y-2">
+                {rankingData.length === 0 ? (
+                  <Card>
+                    <p className="text-sm text-edueats-textMuted">No ranking data yet</p>
+                  </Card>
+                ) : (
+                  rankingData.map((item, index) => (
+                    <Card
+                      key={`${item.date ?? item.label}-${index}`}
+                      className="rounded-xl border border-edueats-accent bg-edueats-surfaceAlt px-3 py-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-edueats-accent text-[10px] font-semibold text-white">
+                          {index + 1}
+                        </span>
+                        <span className="flex-1 truncate text-sm font-medium text-edueats-text">{item.label}</span>
+                        <span className="text-[11px] text-edueats-accent">Ksh {formatCurrency(item.value)}</span>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </section>
+
+            <Card className="bg-white p-3">
+              <p className="text-xs text-edueats-textMuted">Daily spending</p>
+              <p className="text-base font-semibold text-edueats-text">Ksh {formatCurrency(dailySpend)}</p>
+              <p className="mt-1 text-xs text-edueats-textMuted">Daily limit: Ksh {formatCurrency(dailyLimit)}</p>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-edueats-border">
                 <div
                   className={`h-full rounded-full ${dailyUtilization >= 100 ? 'bg-edueats-danger' : 'bg-edueats-accent'}`}
@@ -121,74 +366,7 @@ export default function ReportsPage() {
                 />
               </div>
               <p className="mt-1 text-xs text-edueats-textMuted">{dailyUtilization.toFixed(0)}% of daily limit used</p>
-            </Card>
-            <Card>
-              <p className="text-sm text-edueats-textMuted">Weekly spending</p>
-              <p className="text-xl font-semibold text-edueats-text">Ksh {weeklySpend}</p>
-            </Card>
-            {report.total_spent != null && (
-              <Card>
-                <p className="text-sm text-edueats-textMuted">Total spent</p>
-                <p className="text-xl font-semibold text-edueats-text">Ksh {report.total_spent}</p>
-              </Card>
-            )}
-            {report.orders_count != null && (
-              <Card>
-                <p className="text-sm text-edueats-textMuted">Orders count</p>
-                <p className="text-xl font-semibold text-edueats-text">{report.orders_count}</p>
-              </Card>
-            )}
-            <Card>
-              <p className="mb-2 text-sm text-edueats-textMuted">7-day spend bar graph</p>
-              {normalizedTrend.length === 0 ? (
-                <p className="text-sm text-edueats-textMuted">No trend data available.</p>
-              ) : (
-                <>
-                  <div className="mt-1 flex h-40 items-end gap-2">
-                    {normalizedTrend.map((entry, idx) => {
-                      const heightPct = Math.max(6, (entry.value / maxTrend) * 100);
-                      return (
-                        <div key={entry.date ?? idx} className="flex flex-1 flex-col items-center gap-2">
-                          <div className="text-[10px] text-edueats-textMuted">{entry.value}</div>
-                          <div className="flex h-28 w-full items-end rounded-md bg-edueats-surface px-1 py-1">
-                            <div
-                              className="w-full rounded-sm bg-edueats-accent"
-                              style={{ height: `${heightPct}%` }}
-                              title={`${entry.label}: Ksh ${entry.value}`}
-                            />
-                          </div>
-                          <div className="text-[10px] text-edueats-textMuted">{entry.label}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </Card>
-
-            <Card>
-              <p className="mb-2 text-sm text-edueats-textMuted">7-day trend line</p>
-              {normalizedTrend.length === 0 ? (
-                <p className="text-sm text-edueats-textMuted">No trend data available.</p>
-              ) : (
-                <div className="rounded-md bg-edueats-surface p-3">
-                  <svg viewBox="0 0 320 120" className="h-32 w-full" role="img" aria-label="Daily spending trend line">
-                    <path d={trendLinePath} fill="none" stroke="currentColor" strokeWidth="3" className="text-edueats-accent" />
-                    {trendValues.map((value, idx) => {
-                      const max = Math.max(...trendValues, 1);
-                      const step = trendValues.length > 1 ? (320 - 24) / (trendValues.length - 1) : 0;
-                      const x = 12 + step * idx;
-                      const y = 120 - 12 - (value / max) * (120 - 24);
-                      return <circle key={`${idx}-${value}`} cx={x} cy={y} r="3" className="fill-edueats-accent" />;
-                    })}
-                  </svg>
-                  <div className="mt-2 grid grid-cols-7 gap-1 text-[10px] text-edueats-textMuted">
-                    {normalizedTrend.map((entry, idx) => (
-                      <span key={`${entry.date ?? entry.label}-${idx}`} className="text-center">{entry.label}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <p className="mt-2 text-xs text-edueats-textMuted">Weekly spending: Ksh {formatCurrency(weeklySpend)}</p>
             </Card>
           </div>
         )}

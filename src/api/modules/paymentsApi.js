@@ -239,17 +239,39 @@ const downloadReceiptBlob = async (path, fallbackName) => {
 const normalizeList = (payload) =>
   (Array.isArray(payload) ? payload : payload?.results ?? payload?.payments ?? []);
 
+const buildQuery = (params = {}) => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value == null || value === '') return;
+    query.append(key, String(value));
+  });
+  const qs = query.toString();
+  return qs ? `?${qs}` : '';
+};
+
 export const getStudentPaymentHistory = async () => {
   const response = await apiRequest(endpoints.payments.studentHistory);
   return normalizeList(response);
 };
 
-export const getStaffPayments = async () => {
-  const response = await apiRequest(endpoints.payments.staffAll);
+export const getStaffPayments = async ({ paymentType, startDate, endDate } = {}) => {
+  const response = await apiRequest(
+    `${endpoints.payments.staffAll}${buildQuery({
+      payment_type: paymentType,
+      start_date: startDate,
+      end_date: endDate,
+    })}`
+  );
   return normalizeList(response);
 };
 
-export const getStaffPaymentSummary = () => apiRequest(endpoints.payments.staffSummary);
+export const getStaffPaymentSummary = ({ startDate, endDate } = {}) =>
+  apiRequest(
+    `${endpoints.payments.staffSummary}${buildQuery({
+      start_date: startDate,
+      end_date: endDate,
+    })}`
+  );
 
 export const downloadStudentPaymentReceipt = (paymentId) =>
   downloadReceiptBlob(

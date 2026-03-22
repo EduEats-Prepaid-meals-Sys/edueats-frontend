@@ -55,7 +55,7 @@ export const endpoints = {
     studentSummary: '/reports/student/summary/',
     studentTrend: (days = 30) => `/reports/student/trend/?days=${days}`,
     staffSalesSummary: '/reports/staff/sales-summary/',
-    staffPopularMeals: (limit = 10) => `/reports/staff/popular-meals/?limit=${limit}`,
+    staffPopularMeals: '/reports/staff/popular-meals/',
   },
   utils: {
     health: '/utils/health/',

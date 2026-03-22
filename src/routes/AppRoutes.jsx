@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
-import { canUseStudentApp, canUseStaffApp, canUseAdminApp } from '../auth/accessControl.js';
+import { canUseStudentApp, canUseStaffApp, canUseAdminApp, hasCapability } from '../auth/accessControl.js';
 import ProtectedRoute from '../auth/ProtectedRoute.jsx';
 import StudentShell from '../layout/StudentShell.jsx';
 import StaffShell from '../layout/StaffShell.jsx';
@@ -28,6 +28,8 @@ import StaffLoginPage from '../features/staff/pages/StaffLoginPage.jsx';
 import StaffRegisterPage from '../features/staff/pages/StaffRegisterPage.jsx';
 import StaffOrdersPage from '../features/staff/pages/StaffOrdersPage.jsx';
 import StaffPopularPage from '../features/staff/pages/StaffPopularPage.jsx';
+import StaffDashboardPage from '../features/staff/pages/StaffDashboardPage.jsx';
+import StaffReportsPage from '../features/staff/pages/StaffReportsPage.jsx';
 import StaffMenuPage from '../features/staff/pages/StaffMenuPage.jsx';
 import AddMealPage from '../features/staff/pages/AddMealPage.jsx';
 import StaffTopupsPage from '../features/staff/pages/StaffTopupsPage.jsx';
@@ -40,9 +42,46 @@ import AdminLoginPage from '../features/admin/pages/AdminLoginPage.jsx';
 function RedirectByRole() {
   const { roles } = useAuth();
   if (canUseStudentApp(roles)) return <Navigate to="/student/home" replace />;
-  if (canUseStaffApp(roles)) return <Navigate to="/staff/orders" replace />;
+  if (canUseStaffApp(roles)) {
+    if (hasCapability(roles, 'staff:reports')) {
+      return <Navigate to="/staff/dashboard" replace />;
+    }
+    return <Navigate to="/staff/orders" replace />;
+  }
   if (canUseAdminApp(roles)) return <Navigate to="/admin/analytics" replace />;
   return <Navigate to="/student/home" replace />;
+}
+
+function StaffCapabilityRoute({ capability, children, fallback = '/staff/orders' }) {
+  const { roles } = useAuth();
+  if (!hasCapability(roles, capability)) {
+    return <Navigate to={fallback} replace />;
+  }
+  return children;
+}
+
+function StaffFallbackPath(roles) {
+  if (hasCapability(roles, 'staff:reports')) return '/staff/dashboard';
+  if (hasCapability(roles, 'staff:orders')) return '/staff/orders';
+  if (hasCapability(roles, 'staff:menu')) return '/staff/menu';
+  if (hasCapability(roles, 'wallet:staff_topups:view')) return '/staff/topups';
+  return '/post-login';
+}
+
+function StaffRoleRoute({ capability, children }) {
+  const { roles } = useAuth();
+  if (!hasCapability(roles, capability)) {
+    return <Navigate to={StaffFallbackPath(roles)} replace />;
+  }
+  return children;
+}
+
+function StaffHomeRedirect() {
+  const { roles } = useAuth();
+  if (hasCapability(roles, 'staff:reports')) {
+    return <Navigate to="dashboard" replace />;
+  }
+  return <Navigate to="orders" replace />;
 }
 
 export default function AppRoutes() {
@@ -87,12 +126,63 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="orders" replace />} />
-        <Route path="orders" element={<StaffOrdersPage />} />
-        <Route path="popular" element={<StaffPopularPage />} />
-        <Route path="menu" element={<StaffMenuPage />} />
-        <Route path="menu/add" element={<AddMealPage />} />
-        <Route path="topups" element={<StaffTopupsPage />} />
+        <Route index element={<StaffHomeRedirect />} />
+        <Route
+          path="dashboard"
+          element={(
+            <StaffRoleRoute capability="staff:reports">
+              <StaffDashboardPage />
+            </StaffRoleRoute>
+          )}
+        />
+        <Route
+          path="reports"
+          element={(
+            <StaffRoleRoute capability="staff:reports">
+              <StaffReportsPage />
+            </StaffRoleRoute>
+          )}
+        />
+        <Route
+          path="orders"
+          element={(
+            <StaffRoleRoute capability="staff:orders">
+              <StaffOrdersPage />
+            </StaffRoleRoute>
+          )}
+        />
+        <Route
+          path="popular"
+          element={(
+            <StaffRoleRoute capability="staff:reports">
+              <StaffPopularPage />
+            </StaffRoleRoute>
+          )}
+        />
+        <Route
+          path="menu"
+          element={(
+            <StaffRoleRoute capability="staff:menu">
+              <StaffMenuPage />
+            </StaffRoleRoute>
+          )}
+        />
+        <Route
+          path="menu/add"
+          element={(
+            <StaffRoleRoute capability="staff:menu">
+              <AddMealPage />
+            </StaffRoleRoute>
+          )}
+        />
+        <Route
+          path="topups"
+          element={(
+            <StaffRoleRoute capability="wallet:staff_topups:view">
+              <StaffTopupsPage />
+            </StaffRoleRoute>
+          )}
+        />
         <Route path="profile" element={<SettingsPage />} />
       </Route>
 
