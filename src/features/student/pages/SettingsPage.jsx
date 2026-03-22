@@ -35,7 +35,7 @@ export default function SettingsPage() {
         setInitialDailyLimit(normalized);
       })
       .catch(() => {
-        setDailyLimit('');
+        setDailyLimit('');l
         setInitialDailyLimit('');
       });
   }, [isStudent]);
