@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { useCart, useToast } from '../../../App.jsx';
 import { createOrder, checkoutOrder } from '../../../api/modules/ordersApi.js';
@@ -44,7 +44,7 @@ export default function CartPage() {
 
       clear();
       setOrderPlaced(true);
-      setToast('Order placed successfully', 'success');
+      setToast('Order placed successfully. Please wait for waitress approval.', 'success');
     } catch (err) {
       if (err?.status === 401) return;
       const mapped = mapApiError(err, { balance, total });
@@ -62,7 +62,7 @@ export default function CartPage() {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center px-6">
         <p className="text-lg font-medium text-edueats-text">Order confirmed</p>
-        <p className="mt-1 text-sm text-edueats-textMuted">Thank you for your order.</p>
+        <p className="mt-1 text-sm text-edueats-textMuted">Thank you for your order. Please wait for waitress approval.</p>
         <Link to="/student/menu" className="mt-6">
           <Button>Order again</Button>
         </Link>

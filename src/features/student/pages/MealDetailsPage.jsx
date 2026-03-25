@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getMenuItem, getMenu } from '../../../api/modules/menuApi.js';
-import { useCart } from '../../../App.jsx';
+import { useCart, useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
 import { FiArrowLeft, FiShoppingCart } from 'react-icons/fi';
@@ -13,6 +13,7 @@ export default function MealDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { addItem, count } = useCart();
+  const { setToast } = useToast();
 
   useEffect(() => {
     const fetchMealDetails = async () => {
@@ -54,6 +55,7 @@ export default function MealDetailsPage() {
   const handleAddToCart = () => {
     if (meal && meal.available !== false && meal.in_stock !== false) {
       addItem(meal, 1);
+      setToast(`${meal.name ?? 'Item'} added to cart`, 'success');
     }
   };
 

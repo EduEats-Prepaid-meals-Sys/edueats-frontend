@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import AppRoutes from './routes/AppRoutes.jsx';
-import Toast from './components/Toast.jsx';
+import TextDialog from './components/TextDialog.jsx';
 
 const CartContext = createContext(undefined);
 const ToastContext = createContext(undefined);
@@ -79,7 +79,6 @@ export function CartProvider({ children }) {
 export function ToastProvider({ children }) {
   const [toast, setToastState] = useState({ message: '', variant: 'info' });
   const [visible, setVisible] = useState(false);
-  const [timerId, setTimerId] = useState(null);
 
   const setToast = useCallback((message, variant = 'info') => {
     const msg = String(message);
@@ -96,12 +95,10 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <Toast
+      <TextDialog
         message={visible ? toast.message : ''}
         variant={toast.variant}
         onRequestClose={clearToast}
-        timerId={timerId}
-        setTimerId={setTimerId}
       />
     </ToastContext.Provider>
   );

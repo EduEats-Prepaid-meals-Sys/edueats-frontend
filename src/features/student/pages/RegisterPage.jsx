@@ -7,6 +7,13 @@ import ErrorBanner from '../../../components/ErrorBanner.jsx';
 import { mapApiError, mapFieldErrors } from '../../../utils/errorMessages.js';
 import { register } from '../../../api/modules/authApi.js';
 import { useToast } from '../../../App.jsx';
+import {
+  isStrongPassword,
+  isValidEmail,
+  isValidFullName,
+  isValidPhoneNumber,
+  normalizePhoneInput,
+} from '../../../utils/validators.js';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -31,12 +38,40 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const normalizedName = form.name.trim();
+    const normalizedEmail = form.email.trim().toLowerCase();
+    const normalizedContact = normalizePhoneInput(form.contact);
+
+    const nextErrors = {};
+    if (!isValidFullName(normalizedName)) {
+      nextErrors.name = 'Enter a valid name (letters, spaces, apostrophe, hyphen).';
+    }
+    if (!isValidPhoneNumber(normalizedContact)) {
+      nextErrors.contact = 'Enter a valid phone number (10 digits).';
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      nextErrors.email = 'Enter a valid email address.';
+    }
+    if (!isStrongPassword(form.password)) {
+      nextErrors.password = 'Password must be 8+ chars with upper, lower and number.';
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
     setLoading(true);
     setErrors({});
     try {
-      await register(form);
+      await register({
+        ...form,
+        name: normalizedName,
+        email: normalizedEmail,
+        contact: normalizedContact,
+      });
       setToast('Registration successful. Verify your email to continue.', 'success');
-      navigate('/verify-email', { state: { email: form.email } });
+      navigate('/verify-email', { state: { email: normalizedEmail } });
     } catch (err) {
       const fieldErrors = mapFieldErrors(err);
       const { _general, ...inlineErrors } = fieldErrors;
@@ -79,14 +114,20 @@ export default function RegisterPage() {
               value={form.name}
               onChange={handleChange}
               placeholder="Full name"
+              autoComplete="name"
               error={errors.name}
             />
             <Input
               label="Contact"
               name="contact"
+              type="tel"
               value={form.contact}
               onChange={handleChange}
-              placeholder="Phone number"
+              inputMode="tel"
+              autoComplete="tel"
+              maxLength={13}
+              placeholder="e.g. 0712345678"
+              hint="10 digits required."
               error={errors.contact}
             />
             <Input
@@ -95,6 +136,7 @@ export default function RegisterPage() {
               type="email"
               value={form.email}
               onChange={handleChange}
+              autoComplete="email"
               placeholder="Email"
               error={errors.email}
             />
@@ -104,7 +146,9 @@ export default function RegisterPage() {
               type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={handleChange}
+              autoComplete="new-password"
               placeholder="Password"
+              hint="Minimum 8 characters, include uppercase, lowercase and a number."
               error={errors.password}
             />
             <div className="flex justify-end">

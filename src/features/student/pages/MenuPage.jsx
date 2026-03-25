@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getMenu } from '../../../api/modules/menuApi.js';
-import { useCart } from '../../../App.jsx';
+import { useCart, useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
 import { FiShoppingCart } from 'react-icons/fi';
@@ -20,6 +20,7 @@ export default function MenuPage() {
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addItem, count } = useCart();
+  const { setToast } = useToast();
 
   const fetchMenu = useCallback(() => {
     getMenu()
@@ -126,6 +127,7 @@ export default function MenuPage() {
                           e.preventDefault();
                           e.stopPropagation();
                           addItem(m, 1);
+                          setToast(`${m.name ?? 'Item'} added to cart`, 'success');
                         }}
                         className="flex h-9 w-9 items-center justify-center rounded-full bg-edueats-accent text-white disabled:bg-edueats-border disabled:text-edueats-textMuted"
                       >

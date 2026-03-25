@@ -115,7 +115,8 @@ export default function LoginPage() {
                 {showPassword ? 'Hide password' : 'Show password'}
               </button>
             </div>
-            <div className="text-right">
+            <div className="flex justify-between">
+              <Link to="/resend-code" className="text-sm text-edueats-textMuted">Resend Code?</Link>
               <Link to="/forgot-password" className="text-sm text-edueats-textMuted">Forgot Password?</Link>
             </div>
             {formError && <ErrorBanner error={formError} />}

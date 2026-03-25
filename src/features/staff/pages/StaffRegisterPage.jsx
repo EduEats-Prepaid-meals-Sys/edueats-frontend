@@ -7,6 +7,14 @@ import ErrorBanner from '../../../components/ErrorBanner.jsx';
 import { mapApiError, mapFieldErrors } from '../../../utils/errorMessages.js';
 import { registerStaff } from '../../../api/modules/authApi.js';
 import { useToast } from '../../../App.jsx';
+import {
+  isStrongPassword,
+  isValidEmail,
+  isValidFullName,
+  isValidPhoneNumber,
+  isValidStaffId,
+  normalizePhoneInput,
+} from '../../../utils/validators.js';
 
 const ROLE_OPTIONS = [
   { value: '', label: 'Select role...' },
@@ -38,12 +46,22 @@ export default function StaffRegisterPage() {
 
   const validate = () => {
     const errs = {};
-    if (!form.full_name.trim()) errs.full_name = 'Full name is required';
-    if (!form.email.trim()) errs.email = 'Email is required';
-    if (!form.password) errs.password = 'Password is required';
-    if (!form.mobile_number.trim()) errs.mobile_number = 'Phone number is required';
+    if (!isValidFullName(form.full_name)) {
+      errs.full_name = 'Enter a valid full name (letters, spaces, apostrophe, hyphen).';
+    }
+    if (!isValidEmail(form.email)) {
+      errs.email = 'Enter a valid email address.';
+    }
+    if (!isStrongPassword(form.password)) {
+      errs.password = 'Password must be 8+ chars with upper, lower and number.';
+    }
+    if (!isValidPhoneNumber(form.mobile_number)) {
+      errs.mobile_number = 'Enter a valid phone number (10 digits).';
+    }
     if (!form.role) errs.role = 'Please select a role';
-    if (!form.staff_id.trim()) errs.staff_id = 'Staff ID is required';
+    if (!isValidStaffId(form.staff_id)) {
+      errs.staff_id = 'Staff ID should be 3-30 chars (letters, numbers, _ or -).';
+    }
     return errs;
   };
 
@@ -56,7 +74,13 @@ export default function StaffRegisterPage() {
     }
     setLoading(true);
     try {
-      await registerStaff(form);
+      await registerStaff({
+        ...form,
+        full_name: form.full_name.trim(),
+        email: form.email.trim().toLowerCase(),
+        mobile_number: normalizePhoneInput(form.mobile_number),
+        staff_id: form.staff_id.trim(),
+      });
       setToast('Account created! You can now log in.', 'success');
       navigate('/staff/login', { replace: true });
     } catch (err) {
@@ -87,6 +111,7 @@ export default function StaffRegisterPage() {
               name="full_name"
               value={form.full_name}
               onChange={handleChange}
+              autoComplete="name"
               placeholder="Enter your full name"
               error={errors.full_name}
             />
@@ -96,6 +121,7 @@ export default function StaffRegisterPage() {
               type="email"
               value={form.email}
               onChange={handleChange}
+              autoComplete="email"
               placeholder="Enter email address"
               error={errors.email}
             />
@@ -105,7 +131,9 @@ export default function StaffRegisterPage() {
               type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={handleChange}
+              autoComplete="new-password"
               placeholder="Create a password"
+              hint="Minimum 8 characters, include uppercase, lowercase and a number."
               error={errors.password}
             />
             <div className="flex justify-end">
@@ -123,7 +151,11 @@ export default function StaffRegisterPage() {
               type="tel"
               value={form.mobile_number}
               onChange={handleChange}
+              inputMode="tel"
+              autoComplete="tel"
+              maxLength={10}
               placeholder="e.g. 0712345678"
+              hint="10 digits required."
               error={errors.mobile_number}
             />
             <div>
@@ -148,6 +180,8 @@ export default function StaffRegisterPage() {
               value={form.staff_id}
               onChange={handleChange}
               placeholder="e.g. STF001"
+              autoCapitalize="characters"
+              maxLength={30}
               error={errors.staff_id}
             />
             <Button type="submit" fullWidth disabled={loading}>

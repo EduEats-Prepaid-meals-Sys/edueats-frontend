@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
@@ -100,17 +100,25 @@ export default function VerifyCodePage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-edueats-textMuted">
-            Didn&apos;t receive a code?{' '}
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={resending}
-              className="text-edueats-accent disabled:opacity-60"
-            >
-              {resending ? 'Resending...' : 'Resend code'}
-            </button>
-          </p>
+          <div className="space-y-2 text-center text-sm text-edueats-textMuted">
+            <p>
+              Didn&apos;t receive a code?{' '}
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="text-edueats-accent disabled:opacity-60"
+              >
+                {resending ? 'Resending...' : 'Resend code'}
+              </button>
+            </p>
+            <p>
+              Wrong email?{' '}
+              <Link to="/resend-code" className="text-edueats-accent">
+                Use different email
+              </Link>
+            </p>
+          </div>
         </Card>
       </div>
     </div>

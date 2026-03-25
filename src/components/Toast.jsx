@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import clsx from 'clsx';
 
 const variantClasses = {
@@ -9,20 +9,20 @@ const variantClasses = {
 
 const AUTO_DISMISS_MS = 3500;
 
-const Toast = ({ message, variant = 'info', onRequestClose, timerId, setTimerId }) => {
-  if (!message) return null;
+const Toast = ({ message, variant = 'info', onRequestClose }) => {
+  useEffect(() => {
+    if (!message || typeof onRequestClose !== 'function') return undefined;
 
-  if (!timerId && typeof onRequestClose === 'function') {
-    const id = setTimeout(() => {
+    const id = window.setTimeout(() => {
       onRequestClose();
-      if (setTimerId) {
-        setTimerId(null);
-      }
     }, AUTO_DISMISS_MS);
-    if (setTimerId) {
-      setTimerId(id);
-    }
-  }
+
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [message, onRequestClose]);
+
+  if (!message) return null;
 
   return (
     <div className="fixed inset-x-0 top-4 z-50 flex justify-center px-4">
