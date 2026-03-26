@@ -5,6 +5,7 @@ import Card from '../../../components/Card.jsx';
 import Input from '../../../components/Input.jsx';
 import { requestPasswordReset } from '../../../api/modules/authApi.js';
 import { useToast } from '../../../App.jsx';
+import { isValidEmail } from '../../../utils/validators.js';
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
@@ -14,18 +15,25 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!email.trim()) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
       setToast('Enter your email address.', 'error');
+      return;
+    }
+
+    if (!isValidEmail(normalizedEmail)) {
+      setToast('Enter a valid email address.', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      await requestPasswordReset({ email: email.trim() });
-      setToast('Reset code sent to your email.', 'success');
-      navigate('/reset-password', { state: { email: email.trim() } });
+      await requestPasswordReset({ email: normalizedEmail });
+      setToast('If an account exists for this email, a reset code has been queued.', 'success');
+      navigate('/reset-password', { state: { email: normalizedEmail } });
     } catch (err) {
-      setToast(err?.message ?? 'Failed to send reset code', 'error');
+      setToast(err?.message ?? 'Failed to request reset code', 'error');
     } finally {
       setLoading(false);
     }
@@ -52,7 +60,7 @@ export default function ForgotPasswordPage() {
       <div className="px-6 py-6">
         <Card className="max-w-md space-y-4">
           <p className="text-sm text-edueats-textMuted">
-            Enter your account email and we will send a reset code.
+            Enter your account email. If it exists, a reset code will be queued.
           </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input

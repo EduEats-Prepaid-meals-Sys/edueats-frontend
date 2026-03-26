@@ -4,7 +4,12 @@ import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
 import { useToast } from '../../../App.jsx';
-import { verifyEmailCode, resendVerificationCode } from '../../../api/modules/authApi.js';
+import {
+  getEmailQueueMeta,
+  isImmediateEmailQueueFailure,
+  resendVerificationCode,
+  verifyEmailCode,
+} from '../../../api/modules/authApi.js';
 
 export default function VerifyCodePage() {
   const location = useLocation();
@@ -48,10 +53,20 @@ export default function VerifyCodePage() {
     }
     setResending(true);
     try {
-      await resendVerificationCode({ email });
-      setToast('Verification code resent.', 'success');
+      const response = await resendVerificationCode({ email });
+      const { emailQueued } = getEmailQueueMeta(response);
+      setToast(
+        emailQueued
+          ? 'Verification email queued. Please check your inbox.'
+          : 'Verification request accepted. Please check your inbox.',
+        'success'
+      );
     } catch (err) {
-      setToast(err?.message ?? 'Failed to resend verification code.', 'error');
+      if (isImmediateEmailQueueFailure(err)) {
+        setToast('We could not queue your verification email right now. Please retry.', 'error');
+        return;
+      }
+      setToast(err?.message ?? 'Failed to queue verification email.', 'error');
     } finally {
       setResending(false);
     }

@@ -5,7 +5,11 @@ import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
 import ErrorBanner from '../../../components/ErrorBanner.jsx';
 import { useToast } from '../../../App.jsx';
-import { resendVerificationCode } from '../../../api/modules/authApi.js';
+import {
+  getEmailQueueMeta,
+  isImmediateEmailQueueFailure,
+  resendVerificationCode,
+} from '../../../api/modules/authApi.js';
 import { isValidEmail } from '../../../utils/validators.js';
 
 export default function ResendCodePage() {
@@ -27,11 +31,21 @@ export default function ResendCodePage() {
     setLoading(true);
     setError(null);
     try {
-      await resendVerificationCode({ email: normalizedEmail });
-      setToast('Verification code sent to your email.', 'success');
+      const response = await resendVerificationCode({ email: normalizedEmail });
+      const { emailQueued } = getEmailQueueMeta(response);
+      setToast(
+        emailQueued
+          ? 'Verification email queued. Check your inbox for the code.'
+          : 'Verification request accepted. Check your inbox for updates.',
+        'success'
+      );
       navigate('/verify-code', { state: { email: normalizedEmail } });
     } catch (err) {
-      setError(err?.message ?? 'Failed to send verification code. Please try again.');
+      if (isImmediateEmailQueueFailure(err)) {
+        setError('We could not queue your verification email right now. Please retry in a moment.');
+        return;
+      }
+      setError(err?.message ?? 'Failed to queue verification email. Please try again.');
     } finally {
       setLoading(false);
     }

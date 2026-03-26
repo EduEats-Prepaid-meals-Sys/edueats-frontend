@@ -16,6 +16,18 @@ const normalizeRoles = (payload) => {
   return [];
 };
 
+export const getEmailQueueMeta = (payload = {}) => ({
+  emailQueued: payload?.email_queued === true,
+  deliveryStatus: typeof payload?.delivery_status === 'string' ? payload.delivery_status : null,
+});
+
+export const isImmediateEmailQueueFailure = (error) => {
+  if (!error || typeof error !== 'object') return false;
+  const queued = error?.details?.email_queued;
+  const deliveryStatus = error?.details?.delivery_status;
+  return error.status === 503 && queued === false && deliveryStatus === 'failed';
+};
+
 export const register = async (body = {}) => {
   const contact = body.contact ?? body.phone_number ?? body.phone;
 

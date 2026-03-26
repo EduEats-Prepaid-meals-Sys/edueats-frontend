@@ -5,7 +5,7 @@ import Input from '../../../components/Input.jsx';
 import Card from '../../../components/Card.jsx';
 import ErrorBanner from '../../../components/ErrorBanner.jsx';
 import { mapApiError, mapFieldErrors } from '../../../utils/errorMessages.js';
-import { register } from '../../../api/modules/authApi.js';
+import { getEmailQueueMeta, register } from '../../../api/modules/authApi.js';
 import { useToast } from '../../../App.jsx';
 import {
   isStrongPassword,
@@ -64,13 +64,20 @@ export default function RegisterPage() {
     setLoading(true);
     setErrors({});
     try {
-      await register({
+      const response = await register({
         ...form,
         name: normalizedName,
         email: normalizedEmail,
         contact: normalizedContact,
       });
-      setToast('Registration successful. Verify your email to continue.', 'success');
+
+      const { emailQueued } = getEmailQueueMeta(response);
+      setToast(
+        emailQueued
+          ? 'Registration successful. Verification email queued. Check your inbox for the code.'
+          : 'Registration successful. Please verify your email to continue.',
+        'success'
+      );
       navigate('/verify-email', { state: { email: normalizedEmail } });
     } catch (err) {
       const fieldErrors = mapFieldErrors(err);

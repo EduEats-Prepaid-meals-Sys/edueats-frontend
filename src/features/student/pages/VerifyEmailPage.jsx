@@ -31,7 +31,7 @@ export default function VerifyEmailPage() {
         <Card className="max-w-md space-y-4">
           <p className="text-lg font-medium text-edueats-text">Check your email</p>
           <p className="text-sm text-edueats-textMuted">
-            We sent a verification code to your email account.
+            We queued a verification email to your account.
           </p>
           {email ? (
             <p className="rounded-lg bg-edueats-surface px-3 py-2 text-sm text-edueats-text">
