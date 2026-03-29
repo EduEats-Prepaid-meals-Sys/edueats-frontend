@@ -15,11 +15,15 @@ const ROLE_ALIASES = {
 const CAPABILITIES = {
   [ROLE_KEYS.student]: ['student:home', 'student:orders', 'student:wallet', 'reports:student'],
   [ROLE_KEYS.caterer]: [
+    'staff:menu',
+    'staff:daily_menu',
     'staff:reports',
   ],
   [ROLE_KEYS.waitress]: [
     'staff:orders',
     'staff:menu',
+    'staff:daily_menu',
+    'staff:meal_catalog',
     'wallet:staff_topups:view',
     'wallet:staff_topups:ack',
   ],
@@ -29,6 +33,8 @@ const CAPABILITIES = {
     'admin:menu',
     'staff:orders',
     'staff:menu',
+    'staff:daily_menu',
+    'staff:meal_catalog',
     'staff:reports',
     'wallet:staff_topups:view',
     'wallet:staff_topups:ack',
@@ -81,6 +87,12 @@ export const canUseAdminApp = (rawRoles) =>
 export const canManageMenu = (rawRoles) =>
   hasCapability(rawRoles, 'staff:menu') || hasCapability(rawRoles, 'admin:menu');
 
+export const canManageDailyMenu = (rawRoles) =>
+  hasCapability(rawRoles, 'staff:daily_menu') || hasCapability(rawRoles, 'admin:menu');
+
+export const canManageMealCatalog = (rawRoles) =>
+  hasCapability(rawRoles, 'staff:meal_catalog') || hasCapability(rawRoles, 'admin:menu');
+
 export const canSeeStaffTopups = (rawRoles) =>
   hasCapability(rawRoles, 'wallet:staff_topups:view');
 
@@ -95,6 +107,8 @@ export const accessControl = {
   canUseStaffApp,
   canUseAdminApp,
   canManageMenu,
+  canManageDailyMenu,
+  canManageMealCatalog,
   canSeeStaffTopups,
   canSeeStaffReports,
 };

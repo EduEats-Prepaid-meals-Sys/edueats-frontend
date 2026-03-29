@@ -172,7 +172,7 @@ export default function AppRoutes() {
         <Route
           path="menu/add"
           element={(
-            <StaffRoleRoute capability="staff:menu">
+            <StaffRoleRoute capability="staff:meal_catalog">
               <AddMealPage />
             </StaffRoleRoute>
           )}

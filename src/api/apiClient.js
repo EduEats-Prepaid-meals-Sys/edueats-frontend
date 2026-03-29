@@ -88,7 +88,16 @@ const normalizeError = async (response) => {
 
 const realApiRequest = async (path, options = {}) => {
   const token = getToken();
-  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  const isFormDataBody =
+    typeof FormData !== 'undefined' && options?.body instanceof FormData;
+  const headers = { ...(options.headers || {}) };
+  const hasContentType = Object.keys(headers).some((k) => k.toLowerCase() === 'content-type');
+
+  // Let the browser set multipart boundary for FormData requests.
+  if (!isFormDataBody && !hasContentType) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const response = await fetch(buildUrl(path), { ...options, headers });

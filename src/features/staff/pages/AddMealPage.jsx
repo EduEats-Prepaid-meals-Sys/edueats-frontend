@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createMealCatalog, addToDailyMenu, getMealCatalog } from '../../../api/modules/menuApi.js';
+import { createMealCatalog, addToDailyMenu, getMealCatalog, updateMenuItem } from '../../../api/modules/menuApi.js';
 import { useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
 import Button from '../../../components/Button.jsx';
-import { FiArrowLeft, FiCamera, FiUpload } from 'react-icons/fi';
+import { FiArrowLeft, FiUpload } from 'react-icons/fi';
 
 export default function AddMealPage() {
   const navigate = useNavigate();
@@ -89,14 +89,24 @@ export default function AddMealPage() {
       // Step 1: Create the meal in the catalog
       const mealData = {
         name: formData.name.trim(),
-        price: price,
+        price,
         category: formData.category,
         description: formData.description.trim(),
         is_active: true,
       };
+      const mealForm = new FormData();
+      mealForm.append('name', mealData.name);
+      mealForm.append('price', String(mealData.price));
+      mealForm.append('category', mealData.category);
+      mealForm.append('description', mealData.description);
+      mealForm.append('is_active', String(mealData.is_active));
+      if (selectedFile) {
+        mealForm.append('meal_photo', selectedFile);
+      }
+
       let created = null;
       try {
-        created = await createMealCatalog(mealData);
+        created = await createMealCatalog(mealForm);
       } catch (err) {
         // If meal name already exists, reuse that catalog item and continue.
         const duplicateByName =
@@ -109,6 +119,16 @@ export default function AddMealPage() {
           (m) => String(m?.name ?? '').trim().toLowerCase() === mealData.name.toLowerCase()
         );
         if (!created) throw err;
+
+        // If meal already exists, allow replacing/setting its image when user selected one.
+        if (selectedFile) {
+          const mealId = created.meal_id ?? created.id;
+          if (mealId) {
+            const patchForm = new FormData();
+            patchForm.append('meal_photo', selectedFile);
+            await updateMenuItem(mealId, patchForm);
+          }
+        }
       }
 
       // Step 2: Add it to today's daily menu so students can see and order it
@@ -135,7 +155,7 @@ export default function AddMealPage() {
 
   return (
     <div className="min-h-screen bg-edueats-bg">
-      <header className="rounded-b-card bg-edueats-primary px-6 pt-10 pb-4">
+      <header className="rounded-b-card bg-edueats-primary px-4 pt-10 pb-4 sm:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
@@ -149,7 +169,7 @@ export default function AddMealPage() {
         </div>
       </header>
 
-      <div className="px-6 py-4">
+      <div className="px-4 py-4 sm:px-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Meal Name */}
           <Card className="p-4">
@@ -168,7 +188,7 @@ export default function AddMealPage() {
           </Card>
 
           {/* Price, Meal Category, and Quantity */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Card className="p-4">
               <label className="block">
                 <span className="text-sm font-medium text-edueats-text mb-2 block">Price (Ksh) *</span>

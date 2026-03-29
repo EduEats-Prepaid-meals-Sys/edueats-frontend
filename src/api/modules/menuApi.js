@@ -56,6 +56,11 @@ const normalizeMenuList = (payload) => {
   return list.map(normalizeDailyMenuItem);
 };
 
+const isFormDataBody = (value) =>
+  typeof FormData !== 'undefined' && value instanceof FormData;
+
+const toRequestBody = (body) => (isFormDataBody(body) ? body : JSON.stringify(body));
+
 export const getMenu = async () => {
   try {
     const daily = await apiRequest(endpoints.menu.daily);
@@ -83,22 +88,22 @@ export const getMealCatalog = async () => {
 
 // Create a meal in the catalog (POST /api/menu/meals/)
 export const createMealCatalog = (body) =>
-  apiRequest(endpoints.menu.meals, { method: 'POST', body: JSON.stringify(body) });
+  apiRequest(endpoints.menu.meals, { method: 'POST', body: toRequestBody(body) });
 
 // Add an existing meal to today's daily menu (POST /api/menu/daily/)
 export const addToDailyMenu = (body) =>
-  apiRequest(endpoints.menu.daily, { method: 'POST', body: JSON.stringify(body) });
+  apiRequest(endpoints.menu.daily, { method: 'POST', body: toRequestBody(body) });
 
 // Kept for backward compat — creates catalog entry only
 export const createMenuItem = createMealCatalog;
 
 // Update a meal in the catalog
 export const updateMenuItem = (meal_id, body) =>
-  apiRequest(endpoints.menu.mealItem(meal_id), { method: 'PATCH', body: JSON.stringify(body) });
+  apiRequest(endpoints.menu.mealItem(meal_id), { method: 'PATCH', body: toRequestBody(body) });
 
 // Update a daily menu entry (availability / quantity)
 export const updateDailyMenuEntry = (daily_menu_id, body) =>
-  apiRequest(endpoints.menu.dailyItem(daily_menu_id), { method: 'PATCH', body: JSON.stringify(body) });
+  apiRequest(endpoints.menu.dailyItem(daily_menu_id), { method: 'PATCH', body: toRequestBody(body) });
 
 // Delete a meal from the catalog
 export const deleteMenuItem = (meal_id) =>
