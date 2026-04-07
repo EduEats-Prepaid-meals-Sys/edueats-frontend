@@ -147,19 +147,21 @@ export default function StudentHomePage() {
               </div>
               
               {/* Action buttons */}
-              <div className="flex gap-2">
-                <Link to="/student/menu" className="flex-1">
-                  <Button className="w-full bg-white text-edueats-primaryDeep hover:bg-white/90 transition-all duration-200 font-bold shadow-lg hover:shadow-xl transform hover:scale-105">
-                    Order
-                  </Button>
-                </Link>
-                <Link to="/student/wallet" className="flex-1">
-                  <Button variant="secondary" className="w-full bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30 transition-all duration-200 font-semibold">
-                    <FiArrowUp className="mr-2" />
-                    Top Up
-                  </Button>
-                </Link>
-              </div>
+               {/* Action buttons */}
+<div className="flex gap-2">
+  <Link to="/student/menu" className="flex-1">
+    <Button className="w-full bg-white !text-black hover:bg-white/90 transition-all duration-200 font-bold shadow-lg hover:shadow-xl transform hover:scale-105">
+      Order
+    </Button>
+  </Link>
+
+  <Link to="/student/wallet" className="flex-1">
+    <Button className="w-full bg-white/20 backdrop-blur-sm !text-black border-white/30 hover:bg-white/30 transition-all duration-200 font-semibold">
+      <FiArrowUp className="mr-2" />
+      Top Up
+    </Button>
+  </Link>
+</div>
             </div>
           </Card>
         </div>
