@@ -93,6 +93,12 @@ const realApiRequest = async (path, options = {}) => {
   const headers = { ...(options.headers || {}) };
   const hasContentType = Object.keys(headers).some((k) => k.toLowerCase() === 'content-type');
 
+  // Allow callers (like login forms) to opt out of global 401 redirect behavior.
+  const shouldHandleUnauthorized = options?.handleUnauthorized !== false && Boolean(token);
+
+  // Keep fetch options clean (handleUnauthorized is internal-only).
+  const { handleUnauthorized: _handleUnauthorized, ...fetchOptions } = options;
+
   // Let the browser set multipart boundary for FormData requests.
   if (!isFormDataBody && !hasContentType) {
     headers['Content-Type'] = 'application/json';
@@ -100,11 +106,11 @@ const realApiRequest = async (path, options = {}) => {
 
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(buildUrl(path), { ...options, headers });
+  const response = await fetch(buildUrl(path), { ...fetchOptions, headers });
 
   if (!response.ok) {
     const error = await normalizeError(response);
-    if (error.status === 401) {
+    if (error.status === 401 && shouldHandleUnauthorized) {
       clearToken();
       if (typeof onUnauthorized === 'function') onUnauthorized(error);
     }

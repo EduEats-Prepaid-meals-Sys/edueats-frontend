@@ -46,6 +46,7 @@ export default function StaffMenuPage() {
   const [editingItem, setEditingItem] = useState(null);
   const [editPrice, setEditPrice] = useState('');
   const [deletingTarget, setDeletingTarget] = useState(null);
+  const [dailyFallbackMode, setDailyFallbackMode] = useState(false);
   const [addingDailyOpen, setAddingDailyOpen] = useState(false);
   const [selectedMealId, setSelectedMealId] = useState('');
   const [quantityAvailable, setQuantityAvailable] = useState('');
@@ -64,7 +65,9 @@ export default function StaffMenuPage() {
         getMenu().catch(() => []),
         getMealCatalog().catch(() => []),
       ]);
-      setDailyMenu(Array.isArray(daily) ? daily : daily?.results ?? []);
+      const dailyItems = Array.isArray(daily) ? daily : daily?.results ?? [];
+      setDailyMenu(dailyItems);
+      setDailyFallbackMode(dailyItems.some((item) => item?.source === 'catalog-fallback'));
       const rawCatalog = Array.isArray(catalog) ? catalog : catalog?.results ?? [];
       setMealCatalog(rawCatalog.map(toCatalogItem));
     } finally {
@@ -154,14 +157,25 @@ export default function StaffMenuPage() {
 
   const confirmDelete = async () => {
     if (!deletingTarget?.id) return;
-    const { type, id } = deletingTarget;
+    const { type, id, dailyMenuId, mealId } = deletingTarget;
     setUpdatingId(id);
     try {
       if (type === SECTIONS.daily) {
         if (!canDailyCrud) return;
-        await deleteDailyMenuEntry(id);
-        setDailyMenu((prev) => prev.filter((m) => (m.daily_menu_id ?? m.id) !== id));
-        setToast('Removed from Today\'s Menu', 'success');
+
+        if (dailyMenuId) {
+          await deleteDailyMenuEntry(dailyMenuId);
+          setToast('Removed from Today\'s Menu', 'success');
+        } else if (mealId) {
+          // When backend falls back to catalog data, disable the catalog meal to keep it out of the daily view.
+          await updateMenuItem(mealId, { is_active: false });
+          setToast('Meal hidden from daily menu by deactivating catalog item', 'success');
+        } else {
+          setToast('Unable to resolve daily menu item ID', 'error');
+          return;
+        }
+
+        await fetchData();
       } else {
         if (!canMealCrud) return;
         await deleteMenuItem(id);
@@ -328,7 +342,15 @@ export default function StaffMenuPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setDeletingTarget({ type: SECTIONS.daily, id: itemKey, name: m.name })}
+                          onClick={() =>
+                            setDeletingTarget({
+                              type: SECTIONS.daily,
+                              id: itemKey,
+                              name: m.name,
+                              dailyMenuId: m.daily_menu_id,
+                              mealId: m.meal_id ?? m.id,
+                            })
+                          }
                           disabled={updatingId === itemKey}
                           className="rounded p-2 hover:bg-edueats-border text-edueats-danger disabled:opacity-50"
                           aria-label="Remove from daily menu"

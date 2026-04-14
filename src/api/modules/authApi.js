@@ -52,6 +52,7 @@ export const register = async (body = {}) => {
       return await apiRequest(endpoints.auth.studentSignup, {
         method: 'POST',
         body: JSON.stringify(payload),
+        handleUnauthorized: false,
       });
     } catch (err) {
       lastError = err;
@@ -74,6 +75,7 @@ export const registerStaff = async (body = {}) => {
   return apiRequest(endpoints.auth.staffSignup, {
     method: 'POST',
     body: JSON.stringify(payload),
+    handleUnauthorized: false,
   });
 };
 
@@ -89,6 +91,7 @@ export const registerUnified = async (body = {}) => {
   return apiRequest(endpoints.auth.signup, {
     method: 'POST',
     body: JSON.stringify(payload),
+    handleUnauthorized: false,
   });
 };
 
@@ -121,6 +124,7 @@ export const login = async (body = {}) => {
       response = await apiRequest(endpoint, {
         method: 'POST',
         body: JSON.stringify(payload),
+        handleUnauthorized: false,
       });
       break;
     } catch (err) {
@@ -164,16 +168,32 @@ export const updateMyDetails = async (body, method = 'PATCH') => {
 };
 
 export const verifyEmailCode = (body) =>
-  apiRequest(endpoints.auth.verifyEmail, { method: 'POST', body: JSON.stringify(body) });
+  apiRequest(endpoints.auth.verifyEmail, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    handleUnauthorized: false,
+  });
 
 export const resendVerificationCode = (body) =>
-  apiRequest(endpoints.auth.resendVerification, { method: 'POST', body: JSON.stringify(body) });
+  apiRequest(endpoints.auth.resendVerification, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    handleUnauthorized: false,
+  });
 
 export const requestPasswordReset = (body) =>
-  apiRequest(endpoints.auth.forgotPassword, { method: 'POST', body: JSON.stringify(body) });
+  apiRequest(endpoints.auth.forgotPassword, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    handleUnauthorized: false,
+  });
 
 export const resetPasswordWithCode = (body) =>
-  apiRequest(endpoints.auth.resetPassword, { method: 'POST', body: JSON.stringify(body) });
+  apiRequest(endpoints.auth.resetPassword, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    handleUnauthorized: false,
+  });
 
 export const adminDeleteUser = (userId) =>
   apiRequest(endpoints.users.adminDelete(userId), { method: 'DELETE' });

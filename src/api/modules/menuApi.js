@@ -13,7 +13,7 @@ const toAbsoluteAssetUrl = (value) => {
   return value;
 };
 
-const normalizeDailyMenuItem = (item) => {
+const normalizeDailyMenuItem = (item, source = 'daily') => {
   if (!item || typeof item !== 'object') return item;
 
   const meal = item.meal && typeof item.meal === 'object' ? item.meal : item;
@@ -37,7 +37,7 @@ const normalizeDailyMenuItem = (item) => {
     ...meal,
     id: primaryId,
     meal_id: primaryId,
-    daily_menu_id: item.daily_menu_id ?? item.id,
+    daily_menu_id: source === 'daily' ? (item.daily_menu_id ?? item.id) : null,
     quantity_available: item.quantity_available,
     meal_type: meal.category ?? meal.meal_type,
     image_url: toAbsoluteAssetUrl(
@@ -48,12 +48,13 @@ const normalizeDailyMenuItem = (item) => {
     ),
     available,
     in_stock: inStock,
+    source,
   };
 };
 
-const normalizeMenuList = (payload) => {
+const normalizeMenuList = (payload, source = 'daily') => {
   const list = Array.isArray(payload) ? payload : payload?.results ?? [];
-  return list.map(normalizeDailyMenuItem);
+  return list.map((item) => normalizeDailyMenuItem(item, source));
 };
 
 const isFormDataBody = (value) =>
@@ -64,10 +65,10 @@ const toRequestBody = (body) => (isFormDataBody(body) ? body : JSON.stringify(bo
 export const getMenu = async () => {
   try {
     const daily = await apiRequest(endpoints.menu.daily);
-    return normalizeMenuList(daily);
+    return normalizeMenuList(daily, 'daily');
   } catch {
     const meals = await apiRequest(endpoints.menu.meals);
-    return normalizeMenuList(meals);
+    return normalizeMenuList(meals, 'catalog-fallback');
   }
 };
 

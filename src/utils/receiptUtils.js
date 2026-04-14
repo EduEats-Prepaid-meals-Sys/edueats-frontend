@@ -10,7 +10,11 @@ export const getOrderAmount = (order) =>
   Number(order?.total_amount ?? order?.total ?? order?.amount ?? order?.grand_total ?? 0);
 
 export const getPaymentId = (order) =>
-  order?.payment_id ?? order?.payment?.payment_id ?? order?.payment?.id ?? order?.id ?? null;
+  order?.payment_id ??
+  order?.payment?.payment_id ??
+  order?.payment?.id ??
+  order?.receipt?.payment_id ??
+  null;
 
 export const getStudentName = (order, fallback = 'Student') =>
   order?.student_name ??
