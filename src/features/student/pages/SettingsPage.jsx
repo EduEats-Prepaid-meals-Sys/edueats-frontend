@@ -12,12 +12,21 @@ import { FiEdit, FiMoon, FiGlobe, FiLock, FiBell, FiChevronRight, FiLogOut, FiDo
 
 const isStaff = (path) => path.startsWith('/staff');
 const isAdmin = (path) => path.startsWith('/admin');
+const getBackPath = (path) => {
+  if (isAdmin(path)) return '/admin/analytics';
+  if (isStaff(path)) return '/staff/orders';
+  return '/student/home';
+};
 const PREF_KEYS = {
   darkMode: 'edueats.pref.darkMode',
   language: 'edueats.pref.language',
   alerts: 'edueats.pref.alerts',
 };
 const LANGUAGE_OPTIONS = ['English', 'Swahili'];
+const LANGUAGE_UPDATED_TOAST = {
+  English: 'Language set to English.',
+  Swahili: 'Lugha imewekwa kuwa Kiswahili.',
+};
 const COPY = {
   English: {
     settings: 'Settings',
@@ -37,6 +46,8 @@ const COPY = {
     profileDialogTitle: 'Update account',
     fullName: 'Full Name',
     phoneNumber: 'Phone Number',
+    fullNamePlaceholder: 'Enter your full name',
+    phoneNumberPlaceholder: 'e.g. 07XXXXXXXX',
     saveChanges: 'Save changes',
     accountUpdated: 'Account details updated.',
   },
@@ -58,9 +69,30 @@ const COPY = {
     profileDialogTitle: 'Sasisha akaunti',
     fullName: 'Jina kamili',
     phoneNumber: 'Nambari ya simu',
+    fullNamePlaceholder: 'Weka jina kamili',
+    phoneNumberPlaceholder: 'mf. 07XXXXXXXX',
     saveChanges: 'Hifadhi mabadiliko',
     accountUpdated: 'Maelezo ya akaunti yamesasishwa.',
   },
+};
+
+const updateAccountWithFallback = async (payload) => {
+  let lastError = null;
+  const attempts = [
+    () => updateMe(payload),
+    () => updateMyDetails(payload, 'PATCH'),
+    () => updateMyDetails(payload, 'PUT'),
+  ];
+
+  for (const attempt of attempts) {
+    try {
+      return await attempt();
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw (lastError ?? new Error('Failed to update account details.'));
 };
 
 const readBoolPref = (key, fallback = false) => {
@@ -91,7 +123,7 @@ export default function SettingsPage() {
   const contact = user?.mobile_number ?? user?.phone_number ?? user?.phone ?? '';
   const isStudent = !isStaff(location.pathname) && !isAdmin(location.pathname);
   const roleLabel = isAdmin(location.pathname) ? 'Admin' : isStaff(location.pathname) ? 'Staff' : 'Student';
-  const backTo = isStaff(location.pathname) ? '/staff/orders' : '/student/home';
+  const backTo = getBackPath(location.pathname);
 
   const [dailyLimit, setDailyLimit] = useState('');
   const [initialDailyLimit, setInitialDailyLimit] = useState('');
@@ -205,14 +237,10 @@ export default function SettingsPage() {
 
   const handleChangeLanguage = (nextLanguage) => {
     setLanguage(nextLanguage);
-    setToast(`Language set to ${nextLanguage}.`, 'success');
+    setToast(LANGUAGE_UPDATED_TOAST[nextLanguage] ?? `Language set to ${nextLanguage}.`, 'success');
   };
 
   const handleBack = () => {
-    if (window.history.length > 2) {
-      navigate(-1);
-      return;
-    }
     navigate(backTo, { replace: true });
   };
 
@@ -231,15 +259,7 @@ export default function SettingsPage() {
 
     setProfileSaving(true);
     try {
-      try {
-        await updateMe(payload);
-      } catch {
-        try {
-          await updateMyDetails(payload, 'PATCH');
-        } catch {
-          await updateMyDetails(payload, 'PUT');
-        }
-      }
+      await updateAccountWithFallback(payload);
       await refreshUser();
       setIsProfileModalOpen(false);
       setToast(t.accountUpdated, 'success');
@@ -399,9 +419,9 @@ export default function SettingsPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                    <Input
-                      label={t.dailyLimitLabel}
-                      type="number"
+                  <Input
+                    label={t.dailyLimitLabel}
+                    type="number"
                     min="1"
                     step="1"
                     value={dailyLimit}
@@ -463,14 +483,14 @@ export default function SettingsPage() {
             label={t.fullName}
             value={profileName}
             onChange={(e) => setProfileName(e.target.value)}
-            placeholder="Enter your full name"
+            placeholder={t.fullNamePlaceholder}
             disabled={profileSaving}
           />
           <Input
             label={t.phoneNumber}
             value={profilePhone}
             onChange={(e) => setProfilePhone(e.target.value)}
-            placeholder="e.g. 07XXXXXXXX"
+            placeholder={t.phoneNumberPlaceholder}
             disabled={profileSaving}
           />
         </div>
