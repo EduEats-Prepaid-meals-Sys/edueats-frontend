@@ -16,7 +16,6 @@ const CAPABILITIES = {
   [ROLE_KEYS.student]: ['student:home', 'student:orders', 'student:wallet', 'reports:student'],
   [ROLE_KEYS.caterer]: [
     'staff:menu',
-    'staff:daily_menu',
     'staff:reports',
   ],
   [ROLE_KEYS.waitress]: [

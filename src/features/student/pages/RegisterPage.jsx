@@ -53,7 +53,7 @@ export default function RegisterPage() {
       nextErrors.email = 'Enter a valid email address.';
     }
     if (!isStrongPassword(form.password)) {
-      nextErrors.password = 'Password must be 8+ chars with upper, lower and number.';
+      nextErrors.password = 'Password must be 8+ chars with upper, lower, number and special character.';
     }
 
     if (Object.keys(nextErrors).length > 0) {
@@ -155,7 +155,7 @@ export default function RegisterPage() {
               onChange={handleChange}
               autoComplete="new-password"
               placeholder="Password"
-              hint="Minimum 8 characters, include uppercase, lowercase and a number."
+              hint="Minimum 8 characters, include uppercase, lowercase, number and special character."
               error={errors.password}
             />
             <div className="flex justify-end">

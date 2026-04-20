@@ -53,7 +53,7 @@ export default function StaffRegisterPage() {
       errs.email = 'Enter a valid email address.';
     }
     if (!isStrongPassword(form.password)) {
-      errs.password = 'Password must be 8+ chars with upper, lower and number.';
+      errs.password = 'Password must be 8+ chars with upper, lower, number and special character.';
     }
     if (!isValidPhoneNumber(form.mobile_number)) {
       errs.mobile_number = 'Enter a valid phone number (10 digits).';
@@ -133,7 +133,7 @@ export default function StaffRegisterPage() {
               onChange={handleChange}
               autoComplete="new-password"
               placeholder="Create a password"
-              hint="Minimum 8 characters, include uppercase, lowercase and a number."
+              hint="Minimum 8 characters, include uppercase, lowercase, number and special character."
               error={errors.password}
             />
             <div className="flex justify-end">
