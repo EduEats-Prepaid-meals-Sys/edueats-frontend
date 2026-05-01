@@ -15,6 +15,7 @@ import {
 import Card from '../../../components/Card.jsx';
 import Modal from '../../../components/Modal.jsx';
 import Input from '../../../components/Input.jsx';
+import { MenuItemSkeleton } from '../../../components/Skeleton.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
 import { FiEdit2, FiPlus, FiTrash2 } from 'react-icons/fi';
 
@@ -281,7 +282,11 @@ export default function StaffMenuPage() {
         )}
 
         {loading ? (
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
+          <div className="space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <MenuItemSkeleton key={i} />
+            ))}
+          </div>
         ) : activeSection === SECTIONS.daily && dailyMenu.length === 0 ? (
           <Card>
             <p className="text-center text-sm text-edueats-textMuted">No menu items</p>

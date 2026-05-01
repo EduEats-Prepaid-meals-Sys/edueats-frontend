@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getPersonalReport, getStudentTrend } from '../../../api/modules/reportsApi.js';
 import { getMyLimits } from '../../../api/modules/limitsApi.js';
 import Card from '../../../components/Card.jsx';
+import { Skeleton, StatCardSkeleton, ChartSkeleton } from '../../../components/Skeleton.jsx';
 import { FiBarChart2, FiCalendar, FiDollarSign, FiShoppingBag } from 'react-icons/fi';
 
 const toNumber = (value) => {
@@ -227,7 +228,19 @@ export default function ReportsPage() {
 
       <div className="px-5 py-4">
         {loading ? (
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
+          <div className="space-y-4 pb-2">
+            <div className="grid grid-cols-2 gap-3">
+              <StatCardSkeleton className="bg-[#EFE5AD]" />
+              <StatCardSkeleton className="bg-[#F2EED8]" />
+            </div>
+            <ChartSkeleton height="h-44" className="bg-[#E8E8E8]" />
+            <ChartSkeleton height="h-28" />
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-xl" />
+              ))}
+            </div>
+          </div>
         ) : !report ? (
           <Card>
             <p className="text-center text-sm text-edueats-textMuted">No report data</p>

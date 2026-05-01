@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getMenuItem, getMenu } from '../../../api/modules/menuApi.js';
 import { useCart, useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
+import { Skeleton } from '../../../components/Skeleton.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
 import { FiArrowLeft, FiShoppingCart } from 'react-icons/fi';
 
@@ -62,8 +63,13 @@ export default function MealDetailsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-edueats-bg">
-        <div className="px-6 py-4">
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
+        <div className="px-6 py-4 space-y-4">
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-6 w-2/3" />
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <Skeleton className="h-12 w-full rounded-full mt-4" />
         </div>
       </div>
     );

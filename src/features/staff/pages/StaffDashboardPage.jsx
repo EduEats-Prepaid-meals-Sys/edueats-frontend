@@ -4,6 +4,7 @@ import { FiDollarSign, FiUsers, FiTrendingUp } from 'react-icons/fi';
 import { getDashboardSummary, getStaffPopularMeals } from '../../../api/modules/reportsApi.js';
 import { getStaffPayments } from '../../../api/modules/paymentsApi.js';
 import Card from '../../../components/Card.jsx';
+import { StatCardSkeleton, ChartSkeleton, Skeleton } from '../../../components/Skeleton.jsx';
 
 const parseDate = (value) => {
   const date = new Date(value);
@@ -114,7 +115,22 @@ export default function StaffDashboardPage() {
 
       <div className="space-y-3 px-6 py-4">
         {loading ? (
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading dashboard...</p>
+          <div className="space-y-3">
+            <StatCardSkeleton className="border border-edueats-accent p-4" />
+            <div className="grid grid-cols-2 gap-3">
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </div>
+            <ChartSkeleton height="h-36" className="bg-[#E8E8E8]" />
+            <div className="rounded-card bg-edueats-surface p-3 shadow-card space-y-2">
+              <Skeleton className="h-4 w-1/4 mb-2" />
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-9 w-full rounded-lg" />
+              ))}
+            </div>
+          </div>
         ) : (
           <>
             <Card className="border border-edueats-accent bg-edueats-accent p-4 text-white">
