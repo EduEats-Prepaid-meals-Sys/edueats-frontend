@@ -8,6 +8,7 @@ import { getOrderHistory } from '../../../api/modules/ordersApi.js';
 import { downloadReceipt, canDownloadReceipt } from '../../../utils/receiptUtils.js';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
+import { MenuCardSkeleton, PaymentRowSkeleton } from '../../../components/Skeleton.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
 import { FiCreditCard, FiShoppingCart, FiTrendingUp, FiArrowUp, FiDownload } from 'react-icons/fi';
 
@@ -192,7 +193,11 @@ export default function StudentHomePage() {
 
         <h2 className="mt-6 text-lg font-semibold text-edueats-text">Best Seller</h2>
         {loading ? (
-          <p className="py-4 text-sm text-edueats-textMuted">Loading...</p>
+          <div className="mt-3 flex gap-3 overflow-x-auto pb-6 px-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <MenuCardSkeleton key={i} />
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
           <p className="py-4 text-sm text-edueats-textMuted">No items</p>
         ) : (
@@ -258,7 +263,11 @@ export default function StudentHomePage() {
           <Link to="/student/orders" className="text-sm text-edueats-accent">View All</Link>
         </div>
         {loading ? (
-          <p className="py-4 text-sm text-edueats-textMuted">Loading...</p>
+          <div className="mt-2 space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <PaymentRowSkeleton key={i} />
+            ))}
+          </div>
         ) : history.length === 0 ? (
           <Card className="mt-2">
             <p className="text-sm text-edueats-textMuted">No recent order payments</p>

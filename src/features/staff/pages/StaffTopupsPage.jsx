@@ -6,6 +6,7 @@ import { getStaffTopups, acknowledgeTopup } from '../../../api/modules/walletApi
 import { useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
 import Button from '../../../components/Button.jsx';
+import { PaymentRowSkeleton } from '../../../components/Skeleton.jsx';
 
 export default function StaffTopupsPage() {
   const navigate = useNavigate();
@@ -110,7 +111,11 @@ export default function StaffTopupsPage() {
         </Card>
 
         {loading ? (
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <PaymentRowSkeleton key={i} />
+            ))}
+          </div>
         ) : topups.length === 0 ? (
           <Card>
             <p className="text-center text-sm text-edueats-textMuted">No top-ups found.</p>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDashboardSummary } from '../../../api/modules/reportsApi.js';
 import Card from '../../../components/Card.jsx';
+import { StatCardSkeleton } from '../../../components/Skeleton.jsx';
 
 const toNumber = (value) => Number(value ?? 0);
 const formatNumber = (value) => toNumber(value).toLocaleString('en-KE');
@@ -44,7 +45,12 @@ export default function AdminAnalyticsPage() {
 
       <div className="px-6 py-4">
         {loading ? (
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
+          <div className="grid grid-cols-2 gap-4">
+            <StatCardSkeleton className="border border-edueats-accent bg-edueats-accent" />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
             <Card className="border border-edueats-accent bg-edueats-accent">

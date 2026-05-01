@@ -4,6 +4,7 @@ import { getStudentPaymentHistory } from '../../../api/modules/paymentsApi.js';
 import { downloadReceipt, canDownloadReceipt } from '../../../utils/receiptUtils.js';
 import { useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
+import { PaymentRowSkeleton } from '../../../components/Skeleton.jsx';
 import { FiDownload } from 'react-icons/fi';
 
 const isOrderPayment = (payment) => {
@@ -61,7 +62,11 @@ export default function TransactionsPage() {
 
       <div className="px-6 py-4">
         {loading ? (
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <PaymentRowSkeleton key={i} />
+            ))}
+          </div>
         ) : payments.length === 0 ? (
           <Card>
             <p className="text-center text-sm text-edueats-textMuted">No order payments yet</p>

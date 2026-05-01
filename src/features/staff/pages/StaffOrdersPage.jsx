@@ -4,6 +4,7 @@ import { getLiveOrders, updateOrderStatus } from '../../../api/modules/ordersApi
 import { useToast } from '../../../App.jsx';
 import Button from '../../../components/Button.jsx';
 import Card from '../../../components/Card.jsx';
+import { OrderRowSkeleton } from '../../../components/Skeleton.jsx';
 import { canDownloadReceipt, downloadReceipt, getOrderAmount, getOrderItems, getStudentName } from '../../../utils/receiptUtils.js';
 import { FiDownload } from 'react-icons/fi';
 
@@ -144,7 +145,11 @@ export default function StaffOrdersPage() {
         </div>
 
         {loading && orders.length === 0 ? (
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
+          <div className="mt-4 space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <OrderRowSkeleton key={i} />
+            ))}
+          </div>
         ) : displayList.length === 0 ? (
           <Card className="mt-4">
             <p className="text-center text-sm text-edueats-textMuted">

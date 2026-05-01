@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getStaffPopularMeals, getStaffSalesSummary } from '../../../api/modules/reportsApi.js';
 import { getStaffPaymentSummary } from '../../../api/modules/paymentsApi.js';
 import Card from '../../../components/Card.jsx';
+import { StatCardSkeleton, Skeleton } from '../../../components/Skeleton.jsx';
 
 const yyyyMmDd = (date) => {
   const y = date.getFullYear();
@@ -63,7 +64,27 @@ export default function AdminReportsPage() {
 
       <div className="px-6 py-4">
         {loading ? (
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
+          <div className="space-y-4">
+            <div className="rounded-card bg-edueats-surface p-4 shadow-card">
+              <div className="grid grid-cols-2 gap-3">
+                <Skeleton className="h-9 w-full rounded-lg" />
+                <Skeleton className="h-9 w-full rounded-lg" />
+              </div>
+            </div>
+            <div className="rounded-card bg-edueats-surface p-4 shadow-card space-y-3">
+              <Skeleton className="h-4 w-1/3" />
+              <div className="grid grid-cols-2 gap-3">
+                <StatCardSkeleton className="border border-edueats-accent bg-edueats-accent" />
+                <StatCardSkeleton />
+              </div>
+            </div>
+            <div className="rounded-card bg-edueats-surface p-4 shadow-card space-y-2">
+              <Skeleton className="h-4 w-1/4 mb-2" />
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-9 w-full rounded-lg" />
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
             <Card>

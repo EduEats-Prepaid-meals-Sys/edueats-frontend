@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getMessReport } from '../../../api/modules/reportsApi.js';
 import { getLiveOrders } from '../../../api/modules/ordersApi.js';
 import Card from '../../../components/Card.jsx';
+import { StatCardSkeleton, ChartSkeleton, Skeleton } from '../../../components/Skeleton.jsx';
 import { FiBarChart2, FiDollarSign, FiShoppingBag } from 'react-icons/fi';
 
 const toAmount = (order) => Number(order?.total_amount ?? order?.total ?? order?.amount ?? 0);
@@ -93,7 +94,14 @@ export default function StaffPopularPage() {
         </div>
 
         {loading ? (
-          <p className="py-6 text-center text-sm text-edueats-textMuted">Loading...</p>
+          <div className="mt-4 space-y-4">
+            <ChartSkeleton height="h-40" className="bg-[#E8E8E8]" />
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-9 w-full rounded-lg" />
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="mt-4 space-y-4">
             <Card className="border border-edueats-text/40 bg-[#E8E8E8] p-3">

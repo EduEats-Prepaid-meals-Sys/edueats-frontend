@@ -4,6 +4,7 @@ import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { canManageMenu } from '../../../auth/accessControl.js';
 import { getMenu } from '../../../api/modules/menuApi.js';
 import Card from '../../../components/Card.jsx';
+import { MenuItemSkeleton } from '../../../components/Skeleton.jsx';
 
 export default function AdminMenuPage() {
   const { roles } = useAuth();
@@ -55,7 +56,11 @@ export default function AdminMenuPage() {
 
       <div className="px-6 py-4">
         {loading ? (
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
+          <div className="space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <MenuItemSkeleton key={i} />
+            ))}
+          </div>
         ) : menu.length === 0 ? (
           <Card>
             <p className="text-center text-sm text-edueats-textMuted">No menu items</p>

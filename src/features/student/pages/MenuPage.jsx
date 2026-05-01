@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { getMenu } from '../../../api/modules/menuApi.js';
 import { useCart, useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
+import { MenuItemSkeleton } from '../../../components/Skeleton.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
 import { FiShoppingCart } from 'react-icons/fi';
 
@@ -81,7 +82,11 @@ export default function MenuPage() {
 
       <div className="px-6 py-4">
         {loading ? (
-          <p className="py-8 text-center text-sm text-edueats-textMuted">Loading...</p>
+          <div className="space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <MenuItemSkeleton key={i} />
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
           <p className="py-8 text-center text-sm text-edueats-textMuted">No items for this meal</p>
         ) : (
