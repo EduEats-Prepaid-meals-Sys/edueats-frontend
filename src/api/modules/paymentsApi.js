@@ -644,7 +644,7 @@ const downloadReceiptBlob = async (path, fallbackName) => {
         ],
       });
       const writable = await handle.createWritable();
-      await writable.write(blob);
+      await writable.write(await blob.arrayBuffer());
       await writable.close();
       return;
     } catch (err) {
