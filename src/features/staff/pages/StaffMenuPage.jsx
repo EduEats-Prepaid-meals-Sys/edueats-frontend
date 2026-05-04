@@ -157,28 +157,35 @@ export default function StaffMenuPage() {
   };
 
   const confirmDelete = async () => {
-    if (!deletingTarget?.id) return;
-    const { type, id, dailyMenuId, mealId } = deletingTarget;
-    setUpdatingId(id);
+    const { type, id, dailyMenuId, mealId } = deletingTarget ?? {};
+
+    if (type === SECTIONS.catalog && !id) return;
+    if (type === SECTIONS.daily && !dailyMenuId && !mealId) {
+      setToast('Unable to resolve daily menu item ID', 'error');
+      return;
+    }
+
+    setUpdatingId(id ?? dailyMenuId ?? mealId);
     try {
       if (type === SECTIONS.daily) {
-        if (!canDailyCrud) return;
-
+        if (!canDailyCrud) {
+          setToast('Permission denied', 'error');
+          return;
+        }
         if (dailyMenuId) {
           await deleteDailyMenuEntry(dailyMenuId);
-          setToast('Removed from Today\'s Menu', 'success');
-        } else if (mealId) {
+          setToast("Removed from Today's Menu", 'success');
+        } else {
           // When backend falls back to catalog data, disable the catalog meal to keep it out of the daily view.
           await updateMenuItem(mealId, { is_active: false });
           setToast('Meal hidden from daily menu by deactivating catalog item', 'success');
-        } else {
-          setToast('Unable to resolve daily menu item ID', 'error');
-          return;
         }
-
         await fetchData();
       } else {
-        if (!canMealCrud) return;
+        if (!canMealCrud) {
+          setToast('Permission denied', 'error');
+          return;
+        }
         await deleteMenuItem(id);
         setMealCatalog((prev) => prev.filter((m) => (m.meal_id ?? m.id) !== id));
         setDailyMenu((prev) => prev.filter((m) => (m.meal_id ?? m.id) !== id));
@@ -208,7 +215,7 @@ export default function StaffMenuPage() {
         ...(quantity !== null && !isNaN(quantity) ? { quantity_available: quantity } : {}),
         is_available: true,
       });
-      setToast('Meal added to Today\'s Menu', 'success');
+      setToast("Meal added to Today's Menu", 'success');
       setAddingDailyOpen(false);
       setSelectedMealId('');
       setQuantityAvailable('');
@@ -240,7 +247,7 @@ export default function StaffMenuPage() {
                 activeSection === SECTIONS.daily ? 'bg-edueats-accent text-white' : 'text-edueats-textMuted'
               }`}
             >
-              Today\'s Menu
+              Today's Menu
             </button>
             <button
               type="button"
