@@ -35,3 +35,38 @@ export const acknowledgeTopup = (topupId, acknowledged) =>
     method: 'POST',
     body: JSON.stringify({ acknowledged: Boolean(acknowledged) }),
   });
+
+// --- NEW FUNCTION TO HANDLE THE M-PESA DELAY ---
+
+/**
+ * Polls the top-up history looking for a specific transaction to complete.
+ * @param {string} transactionRef - The reference returned by the initial topUp call.
+ * @param {number} maxAttempts - How many times to check before giving up.
+ * @param {number} intervalMs - Milliseconds between checks.
+ */
+export const pollTopUpStatus = async (transactionRef, maxAttempts = 15, intervalMs = 4000) => {
+  for (let i = 0; i < maxAttempts; i++) {
+    // Wait for the specified interval (e.g., 4 seconds) before checking
+    await new Promise(resolve => setTimeout(resolve, intervalMs));
+
+    const history = await getTopUpHistory();
+    
+    // Find the specific transaction we are waiting for
+    const transaction = history.find(t => t.transaction_ref === transactionRef);
+
+    if (transaction) {
+      if (transaction.status === 'completed') {
+        return { success: true, transaction };
+      }
+      if (transaction.status === 'failed') {
+        return { success: false, error: 'The M-Pesa payment failed or was cancelled.' };
+      }
+      // If it's still 'pending', loop continues and it checks again
+    }
+  }
+
+  return { 
+    success: false, 
+    error: 'We have not received the confirmation yet. Your balance will update automatically once M-Pesa processes it.' 
+  };
+};
