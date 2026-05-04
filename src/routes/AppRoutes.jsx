@@ -40,6 +40,9 @@ import AdminReportsPage from '../features/admin/pages/AdminReportsPage.jsx';
 import AdminMenuPage from '../features/admin/pages/AdminMenuPage.jsx';
 import AdminLoginPage from '../features/admin/pages/AdminLoginPage.jsx';
 
+// 1. ADDED IMPORT FOR THE SUCCESS PAGE
+import TopUpSuccess from '../components/TopUpSuccess.jsx'; 
+
 function RedirectByRole() {
   const { roles } = useAuth();
   if (canUseStudentApp(roles)) return <Navigate to="/student/home" replace />;
@@ -114,6 +117,10 @@ export default function AppRoutes() {
         <Route path="menu/:id" element={<MealDetailsPage />} />
         <Route path="cart" element={<CartPage />} />
         <Route path="wallet" element={<WalletPage />} />
+        
+        {/* 2. ADDED THE SUCCESS ROUTE HERE */}
+        <Route path="wallet/success" element={<TopUpSuccess />} /> 
+        
         <Route path="limits" element={<LimitsPage />} />
         <Route path="orders" element={<TransactionsPage />} />
         <Route path="reports" element={<ReportsPage />} />
