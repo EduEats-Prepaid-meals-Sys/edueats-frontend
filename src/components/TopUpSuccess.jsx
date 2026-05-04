@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const TopUpSuccess = () => {
   return (
@@ -24,18 +25,18 @@ const TopUpSuccess = () => {
         </p>
 
         <div className="flex flex-col space-y-3">
-          <a 
-            href="/menu" // Change to your menu/order route
+          <Link 
+            to="/menu" 
             className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition"
           >
             Order Food Now
-          </a>
-          <a 
-            href="/dashboard" // Change to your dashboard route
-            className="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-200 transition"
+          </Link>
+          <Link 
+            to="/dashboard" 
+            className="w-full block bg-gray-100 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-200 transition"
           >
             Back to Dashboard
-          </a>
+          </Link>
         </div>
       </div>
     </div>
