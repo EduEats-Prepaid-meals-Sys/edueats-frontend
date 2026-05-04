@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
-import { topUp } from '../../../api/modules/walletApi.js';
+import { topUp, pollTopUpStatus } from '../../../api/modules/walletApi.js';
 import { useToast } from '../../../App.jsx';
 import Button from '../../../components/Button.jsx';
 import Input from '../../../components/Input.jsx';
@@ -14,6 +14,7 @@ export default function WalletPage() {
   const [amount, setAmount] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState('');
 
   const balance = Number(user?.wallet_balance ?? user?.balance ?? 0);
 
@@ -29,16 +30,38 @@ export default function WalletPage() {
       return;
     }
     setLoading(true);
+    setStatusMsg('');
     try {
-      await topUp({ amount: value, phone_number: phoneNumber.trim() });
-      setToast('Top-up request sent', 'success');
-      setAmount('');
-      setPhoneNumber('');
-      refreshUser();
+      const res = await topUp({ amount: value, phone_number: phoneNumber.trim() });
+      const ref =
+        res?.transaction_ref ??
+        res?.reference ??
+        res?.checkout_request_id ??
+        null;
+
+      if (ref) {
+        setStatusMsg('STK push sent. Waiting for M-PESA confirmation…');
+        const result = await pollTopUpStatus(ref);
+        if (result.success) {
+          setToast('Top-up successful! Your balance has been updated.', 'success');
+          setAmount('');
+          setPhoneNumber('');
+          refreshUser();
+        } else {
+          setToast(result.error ?? 'Top-up could not be confirmed. Please try again.', 'error');
+        }
+      } else {
+        // Backend did not return a trackable ref — fall back to simple confirmation
+        setToast('Top-up request sent', 'success');
+        setAmount('');
+        setPhoneNumber('');
+        refreshUser();
+      }
     } catch (err) {
       setToast(err?.message ?? 'Top-up failed', 'error');
     } finally {
       setLoading(false);
+      setStatusMsg('');
     }
   };
 
@@ -86,7 +109,7 @@ export default function WalletPage() {
               placeholder="e.g. 07XXXXXXXX"
             />
             <Button type="submit" fullWidth disabled={loading} className="text-black">
-              {loading ? 'Processing...' : 'Top Up'}
+              {statusMsg || (loading ? 'Processing...' : 'Top Up')}
             </Button>
           </form>
         </Card>
