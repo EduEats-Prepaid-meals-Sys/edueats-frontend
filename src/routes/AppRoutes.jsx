@@ -40,8 +40,9 @@ import AdminReportsPage from '../features/admin/pages/AdminReportsPage.jsx';
 import AdminMenuPage from '../features/admin/pages/AdminMenuPage.jsx';
 import AdminLoginPage from '../features/admin/pages/AdminLoginPage.jsx';
 
-// 1. ADDED IMPORT FOR THE SUCCESS PAGE
-import TopUpSuccess from '../components/TopUpSuccess.jsx'; 
+// 1. ADDED IMPORT FOR THE SUCCESS AND FAILURE PAGES
+import TopUpSuccess from '../components/TopUpSuccess.jsx';
+import TopUpFailed from '../components/TopUpFailed.jsx';
 
 function RedirectByRole() {
   const { roles } = useAuth();
@@ -118,8 +119,9 @@ export default function AppRoutes() {
         <Route path="cart" element={<CartPage />} />
         <Route path="wallet" element={<WalletPage />} />
         
-        {/* 2. ADDED THE SUCCESS ROUTE HERE */}
-        <Route path="wallet/success" element={<TopUpSuccess />} /> 
+        {/* 2. ADDED THE SUCCESS AND FAILURE ROUTES HERE */}
+        <Route path="wallet/success" element={<TopUpSuccess />} />
+        <Route path="wallet/failed" element={<TopUpFailed />} />
         
         <Route path="limits" element={<LimitsPage />} />
         <Route path="orders" element={<TransactionsPage />} />
