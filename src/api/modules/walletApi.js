@@ -14,7 +14,11 @@ export const getBalanceDetails = async () => {
   };
 };
 
-export const getTopUpHistory = () => apiRequest(endpoints.wallet.topupHistory);
+// UPDATED: Safely handle pagination so `.find()` doesn't crash the frontend
+export const getTopUpHistory = async () => {
+  const payload = await apiRequest(endpoints.wallet.topupHistory);
+  return Array.isArray(payload) ? payload : payload?.results ?? [];
+};
 
 export const getStaffTopups = async (params = {}) => {
   const query = new URLSearchParams();
@@ -49,19 +53,25 @@ export const pollTopUpStatus = async (transactionRef, maxAttempts = 15, interval
     // Wait for the specified interval (e.g., 4 seconds) before checking
     await new Promise(resolve => setTimeout(resolve, intervalMs));
 
-    const history = await getTopUpHistory();
-    
-    // Find the specific transaction we are waiting for
-    const transaction = history.find(t => t.transaction_ref === transactionRef);
+    try {
+      const history = await getTopUpHistory();
+      
+      // Find the specific transaction we are waiting for
+      // This is now 100% safe because getTopUpHistory guarantees an array
+      const transaction = history.find(t => t.transaction_ref === transactionRef);
 
-    if (transaction) {
-      if (transaction.status === 'completed') {
-        return { success: true, transaction };
+      if (transaction) {
+        if (transaction.status === 'completed') {
+          return { success: true, transaction };
+        }
+        if (transaction.status === 'failed') {
+          return { success: false, error: 'The M-Pesa payment failed or was cancelled.' };
+        }
+        // If it's still 'pending', loop continues and it checks again
       }
-      if (transaction.status === 'failed') {
-        return { success: false, error: 'The M-Pesa payment failed or was cancelled.' };
-      }
-      // If it's still 'pending', loop continues and it checks again
+    } catch (error) {
+      // Catch network blips so the polling doesn't prematurely fail
+      console.warn("Polling check failed, retrying on next interval...", error);
     }
   }
 
