@@ -3,13 +3,14 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { canUseStaffApp, getCapabilitiesForRoles } from '../auth/accessControl.js';
 import BottomNav from './BottomNav.jsx';
-import { FiHome, FiList, FiBarChart2, FiGrid, FiUser } from 'react-icons/fi';
+import { FiHome, FiList, FiBarChart2, FiGrid, FiUser, FiMessageSquare } from 'react-icons/fi';
 
 const STAFF_NAV = [
   { to: '/staff/dashboard', label: 'Dashboard', icon: <FiHome />, capability: 'staff:reports' },
   { to: '/staff/reports', label: 'Reports', icon: <FiBarChart2 />, capability: 'staff:reports' },
   { to: '/staff/orders', label: 'Orders', icon: <FiList />, capability: 'staff:orders' },
   { to: '/staff/menu', label: 'Menu', icon: <FiGrid />, capability: 'staff:menu' },
+  { to: '/staff/feedback', label: 'Feedback', icon: <FiMessageSquare />, capability: 'staff:reports' },
   { to: '/staff/topups', label: 'Top-ups', icon: <FiBarChart2 />, capability: 'wallet:staff_topups:view' },
   { to: '/staff/profile', label: 'Profile', icon: <FiUser /> },
 ];
