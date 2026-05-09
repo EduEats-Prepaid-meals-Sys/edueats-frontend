@@ -32,6 +32,9 @@ export default function HelpPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { roleLabel, homePath, profilePath, hasProfile } = getRoleMeta(location.pathname);
+  const reportsGuidance = roleLabel === 'Admin'
+    ? 'Looking for reports? Open the Reports and Analytics pages from the admin section.'
+    : 'Looking for reports? Use the Analytics/Reports tab in the bottom menu.';
 
   return (
     <div className="min-h-screen bg-edueats-bg pb-8">
@@ -75,7 +78,7 @@ export default function HelpPage() {
             ) : (
               <li>Admin account details are managed by your system owner.</li>
             )}
-            <li>Looking for reports? Use the Analytics/Reports tab in the bottom menu.</li>
+            <li>{reportsGuidance}</li>
           </ul>
         </Card>
 
