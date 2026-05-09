@@ -7,8 +7,7 @@ import { getComments, getRatings } from '../../../api/modules/feedbackApi.js';
 import { useToast } from '../../../App.jsx';
 
 const asList = (value) => (Array.isArray(value) ? value : []);
-const commentMealId = (entry) => String(entry?.meal_id ?? entry?.meal ?? entry?.mealId ?? '');
-const ratingMealId = (entry) => String(entry?.meal_id ?? entry?.meal ?? entry?.mealId ?? '');
+const getMealId = (entry) => String(entry?.meal_id ?? entry?.meal ?? entry?.mealId ?? '');
 const commentText = (entry) => entry?.comment ?? entry?.content ?? entry?.text ?? '';
 const displayAuthor = (entry) =>
   entry?.user_name ?? entry?.username ?? entry?.student_name ?? entry?.author ?? 'Student';
@@ -64,12 +63,12 @@ export default function StaffFeedbackPage() {
 
   const filteredComments = useMemo(() => {
     if (!mealId) return comments;
-    return comments.filter((entry) => commentMealId(entry) === String(mealId));
+    return comments.filter((entry) => getMealId(entry) === String(mealId));
   }, [comments, mealId]);
 
   const filteredRatings = useMemo(() => {
     if (!mealId) return ratings;
-    return ratings.filter((entry) => ratingMealId(entry) === String(mealId));
+    return ratings.filter((entry) => getMealId(entry) === String(mealId));
   }, [ratings, mealId]);
 
   const mealNameById = useMemo(
@@ -184,15 +183,14 @@ export default function StaffFeedbackPage() {
                 const created = displayDate(entry);
                 return (
                   <Card key={entry?.id ?? entry?.comment_id ?? index}>
-                    {commentMealId(entry) && (
+                    {getMealId(entry) && (
                       <p className="text-xs text-edueats-textMuted">
-                        Meal: {mealNameById.get(commentMealId(entry)) ?? `Meal #${commentMealId(entry)}`}
+                        Meal: {mealNameById.get(getMealId(entry)) ?? `Meal #${getMealId(entry)}`}
                       </p>
                     )}
                     <p className="text-sm font-medium text-edueats-text">{displayAuthor(entry)}</p>
                     <p className="mt-1 text-sm text-edueats-text">{commentText(entry)}</p>
-                    <div className="mt-2 flex items-center justify-between text-xs text-edueats-textMuted">
-                      <span />
+                    <div className="mt-2 flex items-center justify-end text-xs text-edueats-textMuted">
                       <span>{created ? new Date(created).toLocaleString() : ''}</span>
                     </div>
                   </Card>
@@ -236,9 +234,9 @@ export default function StaffFeedbackPage() {
                 const score = ratingScore(entry) ?? 0;
                 return (
                   <Card key={entry?.id ?? entry?.rating_id ?? index}>
-                    {ratingMealId(entry) && (
+                    {getMealId(entry) && (
                       <p className="text-xs text-edueats-textMuted">
-                        Meal: {mealNameById.get(ratingMealId(entry)) ?? `Meal #${ratingMealId(entry)}`}
+                        Meal: {mealNameById.get(getMealId(entry)) ?? `Meal #${getMealId(entry)}`}
                       </p>
                     )}
                     <div className="flex items-center justify-between">
@@ -247,8 +245,7 @@ export default function StaffFeedbackPage() {
                         {stars(score)}
                       </p>
                     </div>
-                    <div className="mt-2 flex items-center justify-between text-xs text-edueats-textMuted">
-                      <span />
+                    <div className="mt-2 flex items-center justify-end text-xs text-edueats-textMuted">
                       <span>{created ? new Date(created).toLocaleString() : ''}</span>
                     </div>
                   </Card>
