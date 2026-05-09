@@ -11,14 +11,14 @@ const withMealFilter = (path, mealId) => {
   return `${path}${path.includes('?') ? '&' : '?'}meal_id=${encodeURIComponent(mealId)}`;
 };
 
-const requestWithFallback = async (paths, options = {}) => {
+const requestWithFallback = async (paths, options = {}, retryableStatuses = [404]) => {
   let lastError = null;
   for (const path of paths) {
     try {
       return await apiRequest(path, options);
     } catch (err) {
       lastError = err;
-      if (err?.status && err.status !== 404) throw err;
+      if (err?.status && !retryableStatuses.includes(err.status)) throw err;
     }
   }
   throw (lastError ?? new Error('Failed to complete request.'));
@@ -32,10 +32,10 @@ const postWithPayloadFallback = async (paths, payloadCandidates) => {
       return await requestWithFallback(paths, {
         method: 'POST',
         body: JSON.stringify(body),
-      });
+      }, [404, 405]);
     } catch (err) {
       lastError = err;
-      if (err?.status && err.status !== 400 && err.status !== 404 && err.status !== 422) {
+      if (err?.status && err.status !== 400 && err.status !== 404 && err.status !== 405 && err.status !== 422) {
         throw err;
       }
     }
