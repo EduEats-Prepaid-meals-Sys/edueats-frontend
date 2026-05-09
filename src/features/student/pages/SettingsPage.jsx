@@ -8,7 +8,7 @@ import Modal from '../../../components/Modal.jsx';
 import { useToast } from '../../../App.jsx';
 import { getMyLimits, setLimits } from '../../../api/modules/limitsApi.js';
 import { updateMe, updateMyDetails } from '../../../api/modules/authApi.js';
-import { FiEdit, FiMoon, FiGlobe, FiLock, FiBell, FiChevronRight, FiLogOut, FiDollarSign, FiArrowLeft } from 'react-icons/fi';
+import { FiEdit, FiMoon, FiGlobe, FiLock, FiBell, FiChevronRight, FiLogOut, FiDollarSign, FiArrowLeft, FiHelpCircle } from 'react-icons/fi';
 
 const isStaff = (path) => path.startsWith('/staff');
 const isAdmin = (path) => path.startsWith('/admin');
@@ -16,6 +16,11 @@ const getBackPath = (path) => {
   if (isAdmin(path)) return '/admin/analytics';
   if (isStaff(path)) return '/staff/orders';
   return '/student/home';
+};
+const getHelpPath = (path) => {
+  if (isAdmin(path)) return '/admin/help';
+  if (isStaff(path)) return '/staff/help';
+  return '/student/help';
 };
 const PREF_KEYS = {
   darkMode: 'edueats.pref.darkMode',
@@ -32,6 +37,7 @@ const COPY = {
     settings: 'Settings',
     account: 'Account',
     editProfile: 'Edit profile',
+    helpAndSupport: 'Help & Support',
     personalization: 'Personalization',
     darkMode: 'Dark Mode',
     language: 'Language',
@@ -55,6 +61,7 @@ const COPY = {
     settings: 'Mipangilio',
     account: 'Akaunti',
     editProfile: 'Hariri wasifu',
+    helpAndSupport: 'Msaada',
     personalization: 'Mapendeleo',
     darkMode: 'Mandhari ya giza',
     language: 'Lugha',
@@ -124,6 +131,7 @@ export default function SettingsPage() {
   const isStudent = !isStaff(location.pathname) && !isAdmin(location.pathname);
   const roleLabel = isAdmin(location.pathname) ? 'Admin' : isStaff(location.pathname) ? 'Staff' : 'Student';
   const backTo = getBackPath(location.pathname);
+  const helpTo = getHelpPath(location.pathname);
 
   const [dailyLimit, setDailyLimit] = useState('');
   const [initialDailyLimit, setInitialDailyLimit] = useState('');
@@ -303,6 +311,17 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               <FiEdit className="text-edueats-textMuted" />
               <span>{t.editProfile}</span>
+            </div>
+            <FiChevronRight className="text-edueats-textMuted" />
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate(helpTo)}
+            className="flex w-full items-center justify-between border-t border-edueats-border px-4 py-3 text-edueats-text hover:bg-edueats-surface transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <FiHelpCircle className="text-edueats-textMuted" />
+              <span>{t.helpAndSupport}</span>
             </div>
             <FiChevronRight className="text-edueats-textMuted" />
           </button>
