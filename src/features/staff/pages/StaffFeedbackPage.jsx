@@ -13,12 +13,18 @@ const commentText = (entry) => entry?.comment ?? entry?.content ?? entry?.text ?
 const displayAuthor = (entry) =>
   entry?.user_name ?? entry?.username ?? entry?.student_name ?? entry?.author ?? 'Student';
 const displayDate = (entry) => entry?.created_at ?? entry?.createdAt ?? entry?.date ?? null;
-const normalizeScore = (value) => Math.max(0, Math.min(5, Number(value) || 0));
-const ratingScore = (entry) => normalizeScore(entry?.rating ?? entry?.score ?? entry?.value ?? 0);
+const normalizeScore = (value) => Math.max(0, Math.min(5, Number(value)));
+const ratingScore = (entry) => {
+  const raw = entry?.rating ?? entry?.score ?? entry?.value;
+  const numeric = Number(raw);
+  if (!Number.isFinite(numeric)) return null;
+  return normalizeScore(numeric);
+};
 const stars = (value) => {
   const rounded = Math.round(normalizeScore(value));
   return `${'★'.repeat(rounded)}${'☆'.repeat(5 - rounded)}`;
 };
+const menuItemId = (item) => item?.id ?? item?.meal_id;
 
 const FEEDBACK_TABS = {
   comments: 'comments',
@@ -69,7 +75,7 @@ export default function StaffFeedbackPage() {
   const averageRating = useMemo(() => {
     const values = filteredRatings
       .map((entry) => ratingScore(entry))
-      .filter((value) => Number.isFinite(value) && value > 0);
+      .filter((value) => Number.isFinite(value));
     if (values.length === 0) return null;
     const total = values.reduce((sum, value) => sum + value, 0);
     return total / values.length;
@@ -100,7 +106,7 @@ export default function StaffFeedbackPage() {
             >
               <option value="">All meals</option>
               {menu.map((item) => (
-                <option key={item.id ?? item.meal_id} value={item.id ?? item.meal_id}>
+                <option key={menuItemId(item)} value={menuItemId(item)}>
                   {item.name}
                 </option>
               ))}
@@ -186,7 +192,7 @@ export default function StaffFeedbackPage() {
             ) : (
               filteredRatings.map((entry, index) => {
                 const created = displayDate(entry);
-                const score = ratingScore(entry);
+                const score = ratingScore(entry) ?? 0;
                 return (
                   <Card key={entry?.id ?? entry?.rating_id ?? index}>
                     <div className="flex items-center justify-between">
