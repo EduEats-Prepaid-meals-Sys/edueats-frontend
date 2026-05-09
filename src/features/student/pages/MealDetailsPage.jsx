@@ -5,7 +5,7 @@ import { useCart, useToast } from '../../../App.jsx';
 import Card from '../../../components/Card.jsx';
 import { Skeleton } from '../../../components/Skeleton.jsx';
 import foodPlaceholder from '../../../assets/images/food-placeholder.svg';
-import { FiArrowLeft, FiShoppingCart } from 'react-icons/fi';
+import { FiArrowLeft, FiMessageSquare, FiShoppingCart, FiStar } from 'react-icons/fi';
 
 export default function MealDetailsPage() {
   const { id } = useParams();
@@ -169,6 +169,23 @@ export default function MealDetailsPage() {
                 </p>
               </div>
             )}
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Link
+                to={`/student/comments?mealId=${encodeURIComponent(meal.id)}&mealName=${encodeURIComponent(meal.name ?? '')}`}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-edueats-border bg-edueats-surface px-4 py-2 text-sm font-medium text-edueats-text hover:bg-edueats-surfaceAlt"
+              >
+                <FiMessageSquare />
+                Comments
+              </Link>
+              <Link
+                to={`/student/ratings?mealId=${encodeURIComponent(meal.id)}&mealName=${encodeURIComponent(meal.name ?? '')}`}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-edueats-border bg-edueats-surface px-4 py-2 text-sm font-medium text-edueats-text hover:bg-edueats-surfaceAlt"
+              >
+                <FiStar />
+                Ratings
+              </Link>
+            </div>
 
             {/* Add to Cart Button */}
             <button

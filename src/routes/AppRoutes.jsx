@@ -25,6 +25,8 @@ import TransactionsPage from '../features/student/pages/TransactionsPage.jsx';
 import ReportsPage from '../features/student/pages/ReportsPage.jsx';
 import SettingsPage from '../features/student/pages/SettingsPage.jsx';
 import HelpPage from '../features/student/pages/HelpPage.jsx';
+import CommentsPage from '../features/student/pages/CommentsPage.jsx';
+import RatingsPage from '../features/student/pages/RatingsPage.jsx';
 
 import StaffLoginPage from '../features/staff/pages/StaffLoginPage.jsx';
 import StaffRegisterPage from '../features/staff/pages/StaffRegisterPage.jsx';
@@ -127,6 +129,8 @@ export default function AppRoutes() {
         <Route path="limits" element={<LimitsPage />} />
         <Route path="orders" element={<TransactionsPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="comments" element={<CommentsPage />} />
+        <Route path="ratings" element={<RatingsPage />} />
         <Route path="profile" element={<SettingsPage />} />
         <Route path="help" element={<HelpPage />} />
       </Route>
