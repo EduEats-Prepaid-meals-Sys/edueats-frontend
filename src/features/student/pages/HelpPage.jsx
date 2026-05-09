@@ -66,9 +66,9 @@ export default function HelpPage() {
             <h2 className="text-base font-semibold text-edueats-text">Common tasks</h2>
           </div>
           <ul className="space-y-2 text-sm text-edueats-text">
-            <li>• Need to return quickly? Go to <Link to={homePath} className="font-semibold text-edueats-accent underline">Home</Link>.</li>
-            <li>• Want to update your details? Visit <Link to={profilePath} className="font-semibold text-edueats-accent underline">Profile</Link>.</li>
-            <li>• Looking for reports? Use the Analytics/Reports tab in the bottom menu.</li>
+            <li>Need to return quickly? Go to <Link to={homePath} className="font-semibold text-edueats-accent underline">Home</Link>.</li>
+            <li>Want to update your details? Visit <Link to={profilePath} className="font-semibold text-edueats-accent underline">Profile</Link>.</li>
+            <li>Looking for reports? Use the Analytics/Reports tab in the bottom menu.</li>
           </ul>
         </Card>
 
