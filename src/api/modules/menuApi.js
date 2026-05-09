@@ -62,6 +62,29 @@ const isFormDataBody = (value) =>
 
 const toRequestBody = (body) => (isFormDataBody(body) ? body : JSON.stringify(body));
 
+const withPathSuffix = (path, suffix) => {
+  const normalizedPath = String(path ?? '').trim();
+  const normalizedSuffix = String(suffix ?? '').replace(/^\/+/, '');
+  if (!normalizedPath) return normalizedSuffix;
+  return `${normalizedPath.endsWith('/') ? normalizedPath : `${normalizedPath}/`}${normalizedSuffix}`;
+};
+
+const requestDeleteWithFallback = async (paths) => {
+  let lastError = null;
+  for (const path of paths) {
+    try {
+      return await apiRequest(path, { method: 'DELETE' });
+    } catch (err) {
+      lastError = err;
+      if (err?.status && err.status !== 404 && err.status !== 405) throw err;
+    }
+  }
+  throw (
+    lastError ??
+    new Error(`Failed to delete item. Tried: ${paths.filter(Boolean).join(', ')}`)
+  );
+};
+
 export const getMenu = async () => {
   try {
     const daily = await apiRequest(endpoints.menu.daily);
@@ -108,8 +131,15 @@ export const updateDailyMenuEntry = (daily_menu_id, body) =>
 
 // Delete a meal from the catalog
 export const deleteMenuItem = (meal_id) =>
-  apiRequest(endpoints.menu.mealItem(meal_id), { method: 'DELETE' });
+  requestDeleteWithFallback([
+    endpoints.menu.mealItem(meal_id),
+    withPathSuffix(endpoints.menu.mealItem(meal_id), 'delete/'),
+  ]);
 
 // Remove a meal from today's daily menu
 export const deleteDailyMenuEntry = (daily_menu_id) =>
-  apiRequest(endpoints.menu.dailyItem(daily_menu_id), { method: 'DELETE' });
+  requestDeleteWithFallback([
+    endpoints.menu.dailyItem(daily_menu_id),
+    withPathSuffix(endpoints.menu.dailyItem(daily_menu_id), 'delete/'),
+    withPathSuffix(endpoints.menu.dailyItem(daily_menu_id), 'remove/'),
+  ]);
