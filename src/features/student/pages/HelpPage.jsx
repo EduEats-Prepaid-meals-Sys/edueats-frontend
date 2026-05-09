@@ -34,7 +34,9 @@ export default function HelpPage() {
   const { roleLabel, homePath, profilePath, hasProfile } = getRoleMeta(location.pathname);
   const reportsGuidance = roleLabel === 'Admin'
     ? 'Looking for reports? Open the Reports and Analytics pages from the admin section.'
-    : 'Looking for reports? Use the Analytics/Reports tab in the bottom menu.';
+    : roleLabel === 'Staff'
+      ? 'Looking for reports? Open Dashboard or Reports from the staff bottom menu.'
+      : 'Looking for reports? Use the Analytics tab in the bottom menu.';
 
   return (
     <div className="min-h-screen bg-edueats-bg pb-8">
