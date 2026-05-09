@@ -9,33 +9,36 @@ const getRoleMeta = (path) => {
       roleLabel: 'Staff',
       homePath: '/staff/orders',
       profilePath: '/staff/profile',
+      hasProfile: true,
     };
   }
   if (path.startsWith('/admin')) {
     return {
       roleLabel: 'Admin',
       homePath: '/admin/analytics',
-      profilePath: '/admin/analytics',
+      profilePath: null,
+      hasProfile: false,
     };
   }
   return {
     roleLabel: 'Student',
     homePath: '/student/home',
     profilePath: '/student/profile',
+    hasProfile: true,
   };
 };
 
 export default function HelpPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { roleLabel, homePath, profilePath } = getRoleMeta(location.pathname);
+  const { roleLabel, homePath, profilePath, hasProfile } = getRoleMeta(location.pathname);
 
   return (
     <div className="min-h-screen bg-edueats-bg pb-8">
       <header className="rounded-b-card bg-edueats-primary px-6 pt-10 pb-6">
         <button
           type="button"
-          onClick={() => navigate(profilePath)}
+          onClick={() => navigate(profilePath ?? homePath)}
           className="inline-flex items-center gap-1 rounded-full bg-white/70 px-3 py-1.5 text-sm text-edueats-text"
         >
           <FiArrowLeft className="text-sm" />
@@ -67,7 +70,11 @@ export default function HelpPage() {
           </div>
           <ul className="space-y-2 text-sm text-edueats-text">
             <li>Need to return quickly? Go to <Link to={homePath} className="font-semibold text-edueats-accent underline">Home</Link>.</li>
-            <li>Want to update your details? Visit <Link to={profilePath} className="font-semibold text-edueats-accent underline">Profile</Link>.</li>
+            {hasProfile ? (
+              <li>Want to update your details? Visit <Link to={profilePath} className="font-semibold text-edueats-accent underline">Profile</Link>.</li>
+            ) : (
+              <li>Admin account details are managed by your system owner.</li>
+            )}
             <li>Looking for reports? Use the Analytics/Reports tab in the bottom menu.</li>
           </ul>
         </Card>
