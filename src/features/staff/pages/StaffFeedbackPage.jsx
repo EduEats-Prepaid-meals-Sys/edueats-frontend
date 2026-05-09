@@ -13,10 +13,11 @@ const commentText = (entry) => entry?.comment ?? entry?.content ?? entry?.text ?
 const displayAuthor = (entry) =>
   entry?.user_name ?? entry?.username ?? entry?.student_name ?? entry?.author ?? 'Student';
 const displayDate = (entry) => entry?.created_at ?? entry?.createdAt ?? entry?.date ?? null;
-const ratingScore = (entry) => Number(entry?.rating ?? entry?.score ?? entry?.value ?? 0);
+const normalizeScore = (value) => Math.max(0, Math.min(5, Number(value) || 0));
+const ratingScore = (entry) => normalizeScore(entry?.rating ?? entry?.score ?? entry?.value ?? 0);
 const stars = (value) => {
-  const normalized = Math.max(0, Math.min(5, Number(value) || 0));
-  return `${'★'.repeat(normalized)}${'☆'.repeat(5 - normalized)}`;
+  const rounded = Math.round(normalizeScore(value));
+  return `${'★'.repeat(rounded)}${'☆'.repeat(5 - rounded)}`;
 };
 
 const FEEDBACK_TABS = {
@@ -185,7 +186,7 @@ export default function StaffFeedbackPage() {
             ) : (
               filteredRatings.map((entry, index) => {
                 const created = displayDate(entry);
-                const score = Math.max(0, Math.min(5, ratingScore(entry)));
+                const score = ratingScore(entry);
                 return (
                   <Card key={entry?.id ?? entry?.rating_id ?? index}>
                     <div className="flex items-center justify-between">
