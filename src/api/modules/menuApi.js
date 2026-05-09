@@ -62,6 +62,12 @@ const isFormDataBody = (value) =>
 
 const toRequestBody = (body) => (isFormDataBody(body) ? body : JSON.stringify(body));
 
+const withPathSuffix = (path, suffix) => {
+  const normalizedPath = String(path ?? '');
+  const normalizedSuffix = String(suffix ?? '').replace(/^\/+/, '');
+  return `${normalizedPath.replace(/\/?$/, '/')}${normalizedSuffix}`;
+};
+
 const requestDeleteWithFallback = async (paths) => {
   let lastError = null;
   for (const path of paths) {
@@ -123,13 +129,13 @@ export const updateDailyMenuEntry = (daily_menu_id, body) =>
 export const deleteMenuItem = (meal_id) =>
   requestDeleteWithFallback([
     endpoints.menu.mealItem(meal_id),
-    `${endpoints.menu.mealItem(meal_id)}delete/`,
+    withPathSuffix(endpoints.menu.mealItem(meal_id), 'delete/'),
   ]);
 
 // Remove a meal from today's daily menu
 export const deleteDailyMenuEntry = (daily_menu_id) =>
   requestDeleteWithFallback([
     endpoints.menu.dailyItem(daily_menu_id),
-    `${endpoints.menu.dailyItem(daily_menu_id)}delete/`,
-    `${endpoints.menu.dailyItem(daily_menu_id)}remove/`,
+    withPathSuffix(endpoints.menu.dailyItem(daily_menu_id), 'delete/'),
+    withPathSuffix(endpoints.menu.dailyItem(daily_menu_id), 'remove/'),
   ]);
