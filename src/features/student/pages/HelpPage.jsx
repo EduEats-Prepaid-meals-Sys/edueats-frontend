@@ -32,11 +32,12 @@ export default function HelpPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { roleLabel, homePath, profilePath, hasProfile } = getRoleMeta(location.pathname);
-  const reportsGuidance = roleLabel === 'Admin'
-    ? 'Looking for reports? Open the Reports and Analytics pages from the admin section.'
-    : roleLabel === 'Staff'
-      ? 'Looking for reports? Open Dashboard or Reports from the staff bottom menu.'
-      : 'Looking for reports? Use the Analytics tab in the bottom menu.';
+  let reportsGuidance = 'Looking for reports? Use the Analytics tab in the bottom menu.';
+  if (roleLabel === 'Admin') {
+    reportsGuidance = 'Looking for reports? Open the Reports and Analytics pages from the admin section.';
+  } else if (roleLabel === 'Staff') {
+    reportsGuidance = 'Looking for reports? Open Dashboard or Reports from the staff bottom menu.';
+  }
 
   return (
     <div className="min-h-screen bg-edueats-bg pb-8">
@@ -64,7 +65,7 @@ export default function HelpPage() {
           <ol className="list-decimal space-y-2 pl-5 text-sm text-edueats-text">
             <li>Use the bottom navigation bar to move between key screens.</li>
             <li>Open your profile to update preferences and account details.</li>
-            <li>Start from dashboard/home to review your current activity first.</li>
+            <li>Start from Dashboard/Home to review your current activity first.</li>
           </ol>
         </Card>
 
