@@ -57,6 +57,14 @@ export const endpoints = {
     staffSalesSummary: '/reports/staff/sales-summary/',
     staffPopularMeals: '/reports/staff/popular-meals/',
   },
+  comments: {
+    list: '/comments/',
+    item: (id) => `/comments/${id}/`,
+  },
+  ratings: {
+    list: '/ratings/',
+    item: (id) => `/ratings/${id}/`,
+  },
   utils: {
     health: '/utils/health/',
     appInfo: '/utils/app-info/',
