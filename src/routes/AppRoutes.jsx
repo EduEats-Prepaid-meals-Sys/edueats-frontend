@@ -24,6 +24,7 @@ import LimitsPage from '../features/student/pages/LimitsPage.jsx';
 import TransactionsPage from '../features/student/pages/TransactionsPage.jsx';
 import ReportsPage from '../features/student/pages/ReportsPage.jsx';
 import SettingsPage from '../features/student/pages/SettingsPage.jsx';
+import HelpPage from '../features/student/pages/HelpPage.jsx';
 
 import StaffLoginPage from '../features/staff/pages/StaffLoginPage.jsx';
 import StaffRegisterPage from '../features/staff/pages/StaffRegisterPage.jsx';
@@ -127,6 +128,7 @@ export default function AppRoutes() {
         <Route path="orders" element={<TransactionsPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="profile" element={<SettingsPage />} />
+        <Route path="help" element={<HelpPage />} />
       </Route>
 
       <Route
@@ -195,6 +197,7 @@ export default function AppRoutes() {
           )}
         />
         <Route path="profile" element={<SettingsPage />} />
+        <Route path="help" element={<HelpPage />} />
       </Route>
 
       <Route
@@ -209,6 +212,7 @@ export default function AppRoutes() {
         <Route path="analytics" element={<AdminAnalyticsPage />} />
         <Route path="reports" element={<AdminReportsPage />} />
         <Route path="menu" element={<AdminMenuPage />} />
+        <Route path="help" element={<HelpPage />} />
       </Route>
 
       <Route path="/post-login" element={<RedirectByRole />} />
