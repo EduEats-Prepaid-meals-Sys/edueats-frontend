@@ -37,6 +37,7 @@ import StaffReportsPage from '../features/staff/pages/StaffReportsPage.jsx';
 import StaffMenuPage from '../features/staff/pages/StaffMenuPage.jsx';
 import AddMealPage from '../features/staff/pages/AddMealPage.jsx';
 import StaffTopupsPage from '../features/staff/pages/StaffTopupsPage.jsx';
+import StaffFeedbackPage from '../features/staff/pages/StaffFeedbackPage.jsx';
 
 import AdminAnalyticsPage from '../features/admin/pages/AdminAnalyticsPage.jsx';
 import AdminReportsPage from '../features/admin/pages/AdminReportsPage.jsx';
@@ -181,6 +182,14 @@ export default function AppRoutes() {
           element={(
             <StaffRoleRoute capability="staff:menu">
               <StaffMenuPage />
+            </StaffRoleRoute>
+          )}
+        />
+        <Route
+          path="feedback"
+          element={(
+            <StaffRoleRoute capability="staff:reports">
+              <StaffFeedbackPage />
             </StaffRoleRoute>
           )}
         />
