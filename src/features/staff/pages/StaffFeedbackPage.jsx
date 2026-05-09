@@ -173,14 +173,16 @@ export default function StaffFeedbackPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            <Card>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-edueats-text">Average Rating</p>
-                <p className="text-sm text-edueats-textMuted">
-                  {averageRating ? `${averageRating.toFixed(1)}/5` : 'No ratings'}
-                </p>
-              </div>
-            </Card>
+            {!loading && (
+              <Card>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-edueats-text">Average Rating</p>
+                  <p className="text-sm text-edueats-textMuted">
+                    {averageRating !== null ? `${averageRating.toFixed(1)}/5` : 'No ratings'}
+                  </p>
+                </div>
+              </Card>
+            )}
             {loading ? (
               <Card>
                 <p className="text-sm text-edueats-textMuted">Loading ratings...</p>
