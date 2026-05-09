@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { FiArrowLeft, FiSend } from 'react-icons/fi';
 import Card from '../../../components/Card.jsx';
@@ -28,7 +28,7 @@ export default function CommentsPage() {
   const [mealId, setMealId] = useState(initialMealId);
   const [text, setText] = useState('');
 
-  const loadData = async (activeMealId) => {
+  const loadData = useCallback(async (activeMealId) => {
     setLoading(true);
     try {
       const [menuData, commentsData] = await Promise.all([
@@ -43,11 +43,11 @@ export default function CommentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setToast]);
 
   useEffect(() => {
     loadData(mealId);
-  }, [mealId]);
+  }, [mealId, loadData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

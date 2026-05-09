@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { FiArrowLeft, FiStar } from 'react-icons/fi';
 import Card from '../../../components/Card.jsx';
@@ -45,7 +45,7 @@ export default function RatingsPage() {
     return total / scores.length;
   }, [ratings]);
 
-  const loadData = async (activeMealId) => {
+  const loadData = useCallback(async (activeMealId) => {
     setLoading(true);
     try {
       const [menuData, ratingsData] = await Promise.all([
@@ -60,11 +60,11 @@ export default function RatingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setToast]);
 
   useEffect(() => {
     loadData(mealId);
-  }, [mealId]);
+  }, [mealId, loadData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
