@@ -72,6 +72,17 @@ export default function StaffFeedbackPage() {
     return ratings.filter((entry) => ratingMealId(entry) === String(mealId));
   }, [ratings, mealId]);
 
+  const mealNameById = useMemo(
+    () =>
+      new Map(
+        menu.map((item) => {
+          const id = menuItemId(item);
+          return [String(id), item?.name ?? `Meal ${id}`];
+        })
+      ),
+    [menu]
+  );
+
   const averageRating = useMemo(() => {
     const values = filteredRatings
       .map((entry) => ratingScore(entry))
@@ -114,10 +125,14 @@ export default function StaffFeedbackPage() {
           </label>
         </Card>
 
-        <div className="flex gap-2 rounded-full bg-edueats-surface p-1">
+        <div className="flex gap-2 rounded-full bg-edueats-surface p-1" role="tablist" aria-label="Feedback tabs">
           <button
             type="button"
             onClick={() => setActiveTab(FEEDBACK_TABS.comments)}
+            role="tab"
+            id="staff-feedback-tab-comments"
+            aria-controls="staff-feedback-panel-comments"
+            aria-selected={activeTab === FEEDBACK_TABS.comments}
             className={`flex-1 rounded-full px-3 py-2 text-sm font-medium ${
               activeTab === FEEDBACK_TABS.comments
                 ? 'bg-edueats-accent text-white'
@@ -132,6 +147,10 @@ export default function StaffFeedbackPage() {
           <button
             type="button"
             onClick={() => setActiveTab(FEEDBACK_TABS.ratings)}
+            role="tab"
+            id="staff-feedback-tab-ratings"
+            aria-controls="staff-feedback-panel-ratings"
+            aria-selected={activeTab === FEEDBACK_TABS.ratings}
             className={`flex-1 rounded-full px-3 py-2 text-sm font-medium ${
               activeTab === FEEDBACK_TABS.ratings
                 ? 'bg-edueats-accent text-white'
@@ -146,7 +165,12 @@ export default function StaffFeedbackPage() {
         </div>
 
         {activeTab === FEEDBACK_TABS.comments ? (
-          <div className="space-y-2">
+          <div
+            className="space-y-2"
+            role="tabpanel"
+            id="staff-feedback-panel-comments"
+            aria-labelledby="staff-feedback-tab-comments"
+          >
             {loading ? (
               <Card>
                 <p className="text-sm text-edueats-textMuted">Loading comments...</p>
@@ -160,10 +184,15 @@ export default function StaffFeedbackPage() {
                 const created = displayDate(entry);
                 return (
                   <Card key={entry?.id ?? entry?.comment_id ?? index}>
+                    {commentMealId(entry) && (
+                      <p className="text-xs text-edueats-textMuted">
+                        Meal: {mealNameById.get(commentMealId(entry)) ?? `Meal #${commentMealId(entry)}`}
+                      </p>
+                    )}
                     <p className="text-sm font-medium text-edueats-text">{displayAuthor(entry)}</p>
                     <p className="mt-1 text-sm text-edueats-text">{commentText(entry)}</p>
                     <div className="mt-2 flex items-center justify-between text-xs text-edueats-textMuted">
-                      <span>Meal ID: {commentMealId(entry) || '-'}</span>
+                      <span />
                       <span>{created ? new Date(created).toLocaleString() : ''}</span>
                     </div>
                   </Card>
@@ -172,12 +201,22 @@ export default function StaffFeedbackPage() {
             )}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div
+            className="space-y-2"
+            role="tabpanel"
+            id="staff-feedback-panel-ratings"
+            aria-labelledby="staff-feedback-tab-ratings"
+          >
             {!loading && (
               <Card>
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-edueats-text">Average Rating</p>
-                  <p className="text-sm text-edueats-textMuted">
+                  <p
+                    className="text-sm text-edueats-textMuted"
+                    aria-label={
+                      averageRating !== null ? `Average rating: ${averageRating.toFixed(1)} out of 5` : 'No ratings'
+                    }
+                  >
                     {averageRating !== null ? `${averageRating.toFixed(1)}/5` : 'No ratings'}
                   </p>
                 </div>
@@ -197,12 +236,19 @@ export default function StaffFeedbackPage() {
                 const score = ratingScore(entry) ?? 0;
                 return (
                   <Card key={entry?.id ?? entry?.rating_id ?? index}>
+                    {ratingMealId(entry) && (
+                      <p className="text-xs text-edueats-textMuted">
+                        Meal: {mealNameById.get(ratingMealId(entry)) ?? `Meal #${ratingMealId(entry)}`}
+                      </p>
+                    )}
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium text-edueats-text">{displayAuthor(entry)}</p>
-                      <p className="text-sm text-edueats-text">{stars(score)}</p>
+                      <p className="text-sm text-edueats-text" aria-label={`${score.toFixed(1)} out of 5 stars`}>
+                        {stars(score)}
+                      </p>
                     </div>
                     <div className="mt-2 flex items-center justify-between text-xs text-edueats-textMuted">
-                      <span>Meal ID: {ratingMealId(entry) || '-'}</span>
+                      <span />
                       <span>{created ? new Date(created).toLocaleString() : ''}</span>
                     </div>
                   </Card>
