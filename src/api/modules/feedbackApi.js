@@ -21,11 +21,15 @@ const requestWithFallback = async (paths, options = {}, retryableStatuses = [404
       if (err?.status && !retryableStatuses.includes(err.status)) throw err;
     }
   }
-  throw (lastError ?? new Error('Failed to complete request.'));
+  throw (
+    lastError ??
+    new Error(`Failed to complete request. Tried: ${paths.filter(Boolean).join(', ')}`)
+  );
 };
 
 const postWithPayloadFallback = async (paths, payloadCandidates) => {
   let lastError = null;
+  const retryableStatuses = [400, 404, 405, 422];
 
   for (const body of payloadCandidates) {
     try {
@@ -35,7 +39,7 @@ const postWithPayloadFallback = async (paths, payloadCandidates) => {
       }, [404, 405]);
     } catch (err) {
       lastError = err;
-      if (err?.status && err.status !== 400 && err.status !== 404 && err.status !== 405 && err.status !== 422) {
+      if (err?.status && !retryableStatuses.includes(err.status)) {
         throw err;
       }
     }

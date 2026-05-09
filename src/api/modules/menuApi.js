@@ -63,9 +63,10 @@ const isFormDataBody = (value) =>
 const toRequestBody = (body) => (isFormDataBody(body) ? body : JSON.stringify(body));
 
 const withPathSuffix = (path, suffix) => {
-  const normalizedPath = String(path ?? '');
+  const normalizedPath = String(path ?? '').trim();
   const normalizedSuffix = String(suffix ?? '').replace(/^\/+/, '');
-  return `${normalizedPath.replace(/\/?$/, '/')}${normalizedSuffix}`;
+  if (!normalizedPath) return normalizedSuffix;
+  return `${normalizedPath.endsWith('/') ? normalizedPath : `${normalizedPath}/`}${normalizedSuffix}`;
 };
 
 const requestDeleteWithFallback = async (paths) => {
@@ -78,7 +79,10 @@ const requestDeleteWithFallback = async (paths) => {
       if (err?.status && err.status !== 404 && err.status !== 405) throw err;
     }
   }
-  throw (lastError ?? new Error('Failed to delete item.'));
+  throw (
+    lastError ??
+    new Error(`Failed to delete item. Tried: ${paths.filter(Boolean).join(', ')}`)
+  );
 };
 
 export const getMenu = async () => {
