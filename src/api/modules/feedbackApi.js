@@ -1,8 +1,8 @@
 import { apiRequest } from '../apiClient.js';
 import { endpoints } from '../endpoints.js';
 
-const COMMENTS_FALLBACK_PATHS = ['/comments/', '/comment/'];
-const RATINGS_FALLBACK_PATHS = ['/ratings/', '/rating/', '/ratings/ratings/'];
+const COMMENTS_LIST_PATHS = ['/feedback/comments/', '/comments/', '/comment/'];
+const RATINGS_LIST_PATHS = ['/feedback/ratings/', '/ratings/', '/rating/'];
 
 const normalizeList = (payload) => (Array.isArray(payload) ? payload : payload?.results ?? []);
 
@@ -55,8 +55,11 @@ const postWithPayloadFallback = async (paths, payloadCandidates) => {
 
 export const getComments = async ({ mealId } = {}) => {
   const paths = mealId
-    ? [withMealPath(endpoints.comments.byMeal, mealId)]
-    : [endpoints.comments.list, ...COMMENTS_FALLBACK_PATHS];
+    ? [
+        `/feedback/comments/meals/${mealId}/`,
+        withMealPath(endpoints.comments.byMeal, mealId),
+      ]
+    : COMMENTS_LIST_PATHS;
   const payload = await requestWithFallback(paths);
   return normalizeList(payload);
 };
@@ -84,14 +87,18 @@ export const createComment = async ({ mealId, comment, rating = null }) => {
     Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined))
   );
 
-  const paths = mealId ? [endpoints.comments.byMealCreate(mealId)] : [endpoints.comments.list, ...COMMENTS_FALLBACK_PATHS];
+  const paths = mealId
+    ? [
+        `/feedback/comments/meals/${mealId}/create/`,
+        endpoints.comments.byMealCreate(mealId),
+      ]
+    : COMMENTS_LIST_PATHS;
   return postWithPayloadFallback(paths, payloadCandidates);
 };
 
 export const getRatings = async ({ mealId } = {}) => {
   const paths = [
-    withMealFilter(endpoints.ratings.list, mealId),
-    ...RATINGS_FALLBACK_PATHS.map((path) => withMealFilter(path, mealId)),
+    ...RATINGS_LIST_PATHS.map((path) => withMealFilter(path, mealId)),
   ];
   const payload = await requestWithFallback(paths);
   return normalizeList(payload);
@@ -112,6 +119,6 @@ export const createRating = async ({ mealId, rating }) => {
     Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined && value !== null))
   );
 
-  const paths = [endpoints.ratings.list, ...RATINGS_FALLBACK_PATHS];
+  const paths = RATINGS_LIST_PATHS;
   return postWithPayloadFallback(paths, payloadCandidates);
 };
