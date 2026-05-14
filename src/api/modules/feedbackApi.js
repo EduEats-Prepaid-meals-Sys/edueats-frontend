@@ -1,10 +1,15 @@
 import { apiRequest } from '../apiClient.js';
 import { endpoints } from '../endpoints.js';
 
-const COMMENTS_FALLBACK_PATHS = ['/comments/', '/comment/', '/comments/comments/'];
+const COMMENTS_FALLBACK_PATHS = ['/comments/', '/comment/'];
 const RATINGS_FALLBACK_PATHS = ['/ratings/', '/rating/', '/ratings/ratings/'];
 
 const normalizeList = (payload) => (Array.isArray(payload) ? payload : payload?.results ?? []);
+
+const withMealPath = (path, mealId) => {
+  if (!mealId) return path;
+  return typeof path === 'function' ? path(mealId) : path;
+};
 
 const withMealFilter = (path, mealId) => {
   if (!mealId) return path;
@@ -49,10 +54,9 @@ const postWithPayloadFallback = async (paths, payloadCandidates) => {
 };
 
 export const getComments = async ({ mealId } = {}) => {
-  const paths = [
-    withMealFilter(endpoints.comments.list, mealId),
-    ...COMMENTS_FALLBACK_PATHS.map((path) => withMealFilter(path, mealId)),
-  ];
+  const paths = mealId
+    ? [withMealPath(endpoints.comments.byMeal, mealId)]
+    : [endpoints.comments.list, ...COMMENTS_FALLBACK_PATHS];
   const payload = await requestWithFallback(paths);
   return normalizeList(payload);
 };
@@ -72,7 +76,7 @@ export const createComment = async ({ mealId, comment }) => {
     Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined && value !== null))
   );
 
-  const paths = [endpoints.comments.list, ...COMMENTS_FALLBACK_PATHS];
+  const paths = mealId ? [withMealPath(endpoints.comments.byMeal, mealId)] : [endpoints.comments.list, ...COMMENTS_FALLBACK_PATHS];
   return postWithPayloadFallback(paths, payloadCandidates);
 };
 
