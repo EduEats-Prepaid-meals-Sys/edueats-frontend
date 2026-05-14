@@ -61,19 +61,27 @@ export const getComments = async ({ mealId } = {}) => {
   return normalizeList(payload);
 };
 
-export const createComment = async ({ mealId, comment }) => {
+export const createComment = async ({ mealId, comment, rating }) => {
   const text = String(comment ?? '').trim();
   if (!text) throw new Error('Comment is required.');
+  const normalizedRating =
+    rating === undefined || rating === null || rating === '' ? null : Number(rating);
+  if (
+    normalizedRating !== null &&
+    (!Number.isFinite(normalizedRating) || normalizedRating < 1 || normalizedRating > 5)
+  ) {
+    throw new Error('Rating must be between 1 and 5.');
+  }
 
   const payloadCandidates = [
-    { meal_id: mealId ? Number(mealId) : undefined, comment: text },
-    { meal: mealId ? Number(mealId) : undefined, comment: text },
-    { meal_id: mealId ? Number(mealId) : undefined, content: text },
-    { meal: mealId ? Number(mealId) : undefined, content: text },
-    { meal_id: mealId ? Number(mealId) : undefined, text },
-    { meal: mealId ? Number(mealId) : undefined, text },
+    { meal_id: mealId ? Number(mealId) : undefined, comment: text, rating: normalizedRating },
+    { meal: mealId ? Number(mealId) : undefined, comment: text, rating: normalizedRating },
+    { meal_id: mealId ? Number(mealId) : undefined, content: text, rating: normalizedRating },
+    { meal: mealId ? Number(mealId) : undefined, content: text, rating: normalizedRating },
+    { meal_id: mealId ? Number(mealId) : undefined, text, rating: normalizedRating },
+    { meal: mealId ? Number(mealId) : undefined, text, rating: normalizedRating },
   ].map((payload) =>
-    Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined && value !== null))
+    Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined))
   );
 
   const paths = mealId ? [endpoints.comments.byMealCreate(mealId)] : [endpoints.comments.list, ...COMMENTS_FALLBACK_PATHS];
