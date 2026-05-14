@@ -61,7 +61,7 @@ export const getComments = async ({ mealId } = {}) => {
   return normalizeList(payload);
 };
 
-export const createComment = async ({ mealId, comment, rating }) => {
+export const createComment = async ({ mealId, comment, rating = null }) => {
   const text = String(comment ?? '').trim();
   if (!text) throw new Error('Comment is required.');
   const normalizedRating =
