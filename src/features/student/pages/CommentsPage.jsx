@@ -27,7 +27,7 @@ export default function CommentsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [mealId, setMealId] = useState(initialMealId);
   const [text, setText] = useState('');
-  const [rating, setRating] = useState(5);
+  const [rating, setRating] = useState('');
 
   const loadData = useCallback(async (activeMealId) => {
     setLoading(true);
@@ -61,15 +61,19 @@ export default function CommentsPage() {
       setToast('Select a meal before submitting.', 'error');
       return;
     }
+    if (!rating) {
+      setToast('Select a rating before submitting.', 'error');
+      return;
+    }
 
     setSubmitting(true);
     try {
-      await createComment({ mealId, comment: value, rating });
+      await createComment({ mealId, comment: value, rating: Number(rating) });
       setText('');
       setToast('Feedback submitted successfully.', 'success');
       await loadData(mealId);
     } catch (err) {
-      setToast(err?.message ?? 'Failed to submit comment.', 'error');
+      setToast(err?.message ?? 'Failed to submit feedback.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -121,9 +125,10 @@ export default function CommentsPage() {
               <span className="mb-1 block text-sm text-edueats-text">Rating</span>
               <select
                 value={rating}
-                onChange={(e) => setRating(Number(e.target.value))}
+                onChange={(e) => setRating(e.target.value)}
                 className="w-full rounded-full border border-edueats-border bg-white px-4 py-2.5 text-sm text-edueats-text focus:outline-none focus:ring-2 focus:ring-edueats-accent"
               >
+                <option value="">Choose rating</option>
                 {[5, 4, 3, 2, 1].map((value) => (
                   <option key={value} value={value}>
                     {value} {'★'.repeat(value)}{'☆'.repeat(5 - value)}
