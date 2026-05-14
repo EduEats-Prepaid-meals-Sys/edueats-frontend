@@ -60,6 +60,7 @@ export const endpoints = {
   comments: {
     list: '/comments/',
     byMeal: (mealId) => `/comments/meals/${mealId}/`,
+    byMealCreate: (mealId) => `/comments/meals/${mealId}/create/`,
     item: (id) => `/comments/${id}/`,
   },
   ratings: {

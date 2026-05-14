@@ -76,7 +76,7 @@ export const createComment = async ({ mealId, comment }) => {
     Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined && value !== null))
   );
 
-  const paths = mealId ? [withMealPath(endpoints.comments.byMeal, mealId)] : [endpoints.comments.list, ...COMMENTS_FALLBACK_PATHS];
+  const paths = mealId ? [endpoints.comments.byMealCreate(mealId)] : [endpoints.comments.list, ...COMMENTS_FALLBACK_PATHS];
   return postWithPayloadFallback(paths, payloadCandidates);
 };
 
