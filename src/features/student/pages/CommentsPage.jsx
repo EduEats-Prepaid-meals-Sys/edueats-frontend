@@ -70,6 +70,7 @@ export default function CommentsPage() {
     try {
       await createComment({ mealId, comment: value, rating: Number(rating) });
       setText('');
+      setRating('');
       setToast('Feedback submitted successfully.', 'success');
       await loadData(mealId);
     } catch (err) {
@@ -131,7 +132,7 @@ export default function CommentsPage() {
                 <option value="">Choose rating</option>
                 {[5, 4, 3, 2, 1].map((value) => (
                   <option key={value} value={value}>
-                    {value} {'★'.repeat(value)}{'☆'.repeat(5 - value)}
+                    {`${value} ${'★'.repeat(value)}${'☆'.repeat(5 - value)}`}
                   </option>
                 ))}
               </select>
