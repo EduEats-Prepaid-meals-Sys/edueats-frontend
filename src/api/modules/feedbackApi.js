@@ -61,17 +61,17 @@ export const getComments = async ({ mealId } = {}) => {
   return normalizeList(payload);
 };
 
-export const createComment = async ({ mealId, comment }) => {
+export const createComment = async ({ mealId, comment, rating = null }) => {
   const text = String(comment ?? '').trim();
   if (!text) throw new Error('Comment is required.');
 
   const payloadCandidates = [
-    { meal_id: mealId ? Number(mealId) : undefined, comment: text },
-    { meal: mealId ? Number(mealId) : undefined, comment: text },
-    { meal_id: mealId ? Number(mealId) : undefined, content: text },
-    { meal: mealId ? Number(mealId) : undefined, content: text },
-    { meal_id: mealId ? Number(mealId) : undefined, text },
-    { meal: mealId ? Number(mealId) : undefined, text },
+    { meal_id: mealId ? Number(mealId) : undefined, comment: text, rating },
+    { meal: mealId ? Number(mealId) : undefined, comment: text, rating },
+    { meal_id: mealId ? Number(mealId) : undefined, content: text, rating },
+    { meal: mealId ? Number(mealId) : undefined, content: text, rating },
+    { meal_id: mealId ? Number(mealId) : undefined, text, rating },
+    { meal: mealId ? Number(mealId) : undefined, text, rating },
   ].map((payload) =>
     Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined && value !== null))
   );
