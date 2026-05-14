@@ -27,7 +27,7 @@ export default function CommentsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [mealId, setMealId] = useState(initialMealId);
   const [text, setText] = useState('');
-  const [score, setScore] = useState(5);
+  const [rating, setRating] = useState(5);
 
   const loadData = useCallback(async (activeMealId) => {
     setLoading(true);
@@ -64,7 +64,7 @@ export default function CommentsPage() {
 
     setSubmitting(true);
     try {
-      await createComment({ mealId, comment: value, rating: score });
+      await createComment({ mealId, comment: value, rating });
       setText('');
       setToast('Feedback submitted successfully.', 'success');
       await loadData(mealId);
@@ -120,13 +120,13 @@ export default function CommentsPage() {
             <label className="block">
               <span className="mb-1 block text-sm text-edueats-text">Rating</span>
               <select
-                value={score}
-                onChange={(e) => setScore(Number(e.target.value))}
+                value={rating}
+                onChange={(e) => setRating(Number(e.target.value))}
                 className="w-full rounded-full border border-edueats-border bg-white px-4 py-2.5 text-sm text-edueats-text focus:outline-none focus:ring-2 focus:ring-edueats-accent"
               >
                 {[5, 4, 3, 2, 1].map((value) => (
                   <option key={value} value={value}>
-                    {value} <>{'★'.repeat(value)}{'☆'.repeat(5 - value)}</>
+                    {value} {'★'.repeat(value)}{'☆'.repeat(5 - value)}
                   </option>
                 ))}
               </select>
