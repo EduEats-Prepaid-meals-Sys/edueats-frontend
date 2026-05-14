@@ -61,7 +61,7 @@ export default function CommentsPage() {
       setToast('Select a meal before submitting.', 'error');
       return;
     }
-    if (!rating) {
+    if (rating === '') {
       setToast('Select a rating before submitting.', 'error');
       return;
     }
