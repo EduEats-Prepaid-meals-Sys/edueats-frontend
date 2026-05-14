@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { FiArrowLeft, FiSend } from 'react-icons/fi';
+import { FiArrowLeft, FiStar } from 'react-icons/fi';
 import Card from '../../../components/Card.jsx';
 import Button from '../../../components/Button.jsx';
 import { useToast } from '../../../App.jsx';
@@ -27,6 +27,7 @@ export default function CommentsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [mealId, setMealId] = useState(initialMealId);
   const [text, setText] = useState('');
+  const [rating, setRating] = useState(null);
 
   const loadData = useCallback(async (activeMealId) => {
     setLoading(true);
@@ -60,15 +61,20 @@ export default function CommentsPage() {
       setToast('Select a meal before submitting.', 'error');
       return;
     }
+    if (rating === null) {
+      setToast('Select a rating before submitting.', 'error');
+      return;
+    }
 
     setSubmitting(true);
     try {
-      await createComment({ mealId, comment: value });
+      await createComment({ mealId, comment: value, rating });
       setText('');
-      setToast('Comment submitted successfully.', 'success');
+      setRating(null);
+      setToast('Feedback submitted successfully.', 'success');
       await loadData(mealId);
     } catch (err) {
-      setToast(err?.message ?? 'Failed to submit comment.', 'error');
+      setToast(err?.message ?? 'Failed to submit feedback.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -84,7 +90,7 @@ export default function CommentsPage() {
           >
             <FiArrowLeft className="text-sm" />
           </Link>
-          <h1 className="text-xl font-semibold text-edueats-text">Comments</h1>
+          <h1 className="text-xl font-semibold text-edueats-text">Feedback</h1>
         </div>
       </header>
 
@@ -116,9 +122,27 @@ export default function CommentsPage() {
                 className="w-full rounded-xl border border-edueats-border bg-white px-4 py-2.5 text-sm text-edueats-text placeholder:text-edueats-textMuted focus:outline-none focus:ring-2 focus:ring-edueats-accent"
               />
             </label>
+            <label className="block">
+              <span className="mb-1 block text-sm text-edueats-text">Rating</span>
+              <select
+                value={rating ?? ''}
+                onChange={(e) => {
+                  const nextValue = e.target.value;
+                  setRating(nextValue === '' ? null : Number(nextValue));
+                }}
+                className="w-full rounded-full border border-edueats-border bg-white px-4 py-2.5 text-sm text-edueats-text focus:outline-none focus:ring-2 focus:ring-edueats-accent"
+              >
+                <option value="">Choose rating</option>
+                {[5, 4, 3, 2, 1].map((value) => (
+                  <option key={value} value={value}>
+                    {`${value} ${'★'.repeat(value)}${'☆'.repeat(5 - value)}`}
+                  </option>
+                ))}
+              </select>
+            </label>
             <Button type="submit" fullWidth disabled={submitting}>
-              <FiSend className="mr-2" />
-              {submitting ? 'Submitting...' : 'Post Comment'}
+              <FiStar className="mr-2" />
+              {submitting ? 'Submitting...' : 'Submit Feedback'}
             </Button>
           </form>
         </Card>
