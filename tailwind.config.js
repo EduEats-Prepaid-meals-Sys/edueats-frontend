@@ -17,6 +17,9 @@ export default {
           border: '#E0D2C2', // soft card borders
           success: '#3BB273',
           danger: '#E45858',
+          staff: '#0E7F74',       // teal — staff portal accent
+          staffDeep: '#085F56',   // deeper teal for hover/active states
+          staffSoft: '#D2F0EC',   // very light teal background tint
         },
       },
       borderRadius: {

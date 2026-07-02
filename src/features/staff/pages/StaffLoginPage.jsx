@@ -9,6 +9,8 @@ import { login as authLogin, getMe } from '../../../api/modules/authApi.js';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { canUseAdminApp, canUseStaffApp, hasCapability } from '../../../auth/accessControl.js';
 import { useToast } from '../../../App.jsx';
+import { useDarkMode } from '../../../utils/useDarkMode.js';
+import AuthLayout from '../../../layout/AuthLayout.jsx';
 
 const getRedirectPath = (roles = []) => {
   if (canUseAdminApp(roles)) return '/admin/analytics';
@@ -23,6 +25,7 @@ export default function StaffLoginPage() {
   const location = useLocation();
   const { login } = useAuth();
   const { setToast } = useToast();
+  const [isDark, toggleDark] = useDarkMode();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ staff_id: '', password: '' });
   const [formError, setFormError] = useState(null);
@@ -71,67 +74,79 @@ export default function StaffLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-edueats-bg">
-      <header className="bg-edueats-primary px-6 py-6">
-        <button
-          type="button"
-          onClick={() => {
-            if (window.history.length > 2) {
-              navigate(-1);
-            } else {
-              navigate('/', { replace: true });
-            }
-          }}
-          className="text-edueats-text"
-        >
-          Back
-        </button>
-        <h1 className="mt-2 text-xl font-semibold text-edueats-text">Log In</h1>
-      </header>
-      <div className="px-6 py-6">
-        <Card className="max-w-md">
-          <p className="mb-4 text-lg font-medium text-edueats-text">Welcome Back!</p>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Staff ID"
-              name="staff_id"
-              value={form.staff_id}
-              onChange={handleChange}
-              placeholder="Enter staff ID"
-            />
-            <Input
-              label="Password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Enter password"
-            />
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="text-xs text-edueats-textMuted"
-              >
-                {showPassword ? 'Hide password' : 'Show password'}
-              </button>
-            </div>
-            <div className="text-right">
-              <Link to="/forgot-password" className="text-sm text-edueats-textMuted">Forgot Password?</Link>
-            </div>
-            {formError && <ErrorBanner error={formError} />}
-            <Button type="submit" fullWidth disabled={loading}>
-              {loading ? 'Logging in...' : 'Log In'}
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-sm text-edueats-textMuted">
-            Don&apos;t have an account? <Link to="/staff/register" className="text-edueats-accent">Sign Up</Link>
-          </p>
-          <p className="mt-2 text-center text-sm text-edueats-textMuted">
-            Student account? <Link to="/login" className="text-edueats-accent">Student Log In</Link>
-          </p>
-        </Card>
-      </div>
-    </div>
+    <AuthLayout
+      staffVariant
+      header={
+        <>
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                if (window.history.length > 2) navigate(-1);
+                else navigate('/', { replace: true });
+              }}
+              className="text-white/90 text-sm"
+            >
+              ← Back
+            </button>
+            <span className="rounded-full bg-white/20 border border-white/30 px-3 py-0.5 text-xs font-medium text-white tracking-wide">
+              Staff Portal
+            </span>
+            <button
+              type="button"
+              onClick={toggleDark}
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="text-lg leading-none opacity-80 hover:opacity-100 transition-opacity"
+            >
+              {isDark ? '☀️' : '🌙'}
+            </button>
+          </div>
+          <h1 className="mt-3 text-xl font-semibold text-white">Staff Log In</h1>
+        </>
+      }
+    >
+      <Card>
+        <p className="mb-4 text-lg font-medium text-edueats-text">Welcome Back!</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            label="Staff ID"
+            name="staff_id"
+            value={form.staff_id}
+            onChange={handleChange}
+            placeholder="Enter staff ID"
+          />
+          <Input
+            label="Password"
+            name="password"
+            type={showPassword ? 'text' : 'password'}
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Enter password"
+          />
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="text-xs text-edueats-textMuted"
+            >
+              {showPassword ? 'Hide password' : 'Show password'}
+            </button>
+          </div>
+          <div className="text-right">
+            <Link to="/forgot-password" className="text-sm text-edueats-textMuted">Forgot Password?</Link>
+          </div>
+          {formError && <ErrorBanner error={formError} />}
+          <Button type="submit" fullWidth disabled={loading}>
+            {loading ? 'Logging in...' : 'Log In'}
+          </Button>
+        </form>
+        <p className="mt-4 text-center text-sm text-edueats-textMuted">
+          Don&apos;t have an account? <Link to="/staff/register" className="text-edueats-staff font-medium">Sign Up</Link>
+        </p>
+        <p className="mt-2 text-center text-sm text-edueats-textMuted">
+          Student account? <Link to="/login" className="text-edueats-staff font-medium">Student Log In</Link>
+        </p>
+      </Card>
+    </AuthLayout>
   );
 }

@@ -76,7 +76,7 @@ const requestDeleteWithFallback = async (paths) => {
       return await apiRequest(path, { method: 'DELETE' });
     } catch (err) {
       lastError = err;
-      if (err?.status && err.status !== 404 && err.status !== 405) throw err;
+      if (err?.status && err.status !== 400 && err.status !== 404 && err.status !== 405) throw err;
     }
   }
   throw (

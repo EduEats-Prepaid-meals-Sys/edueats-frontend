@@ -33,11 +33,13 @@ export default function StaffShell() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col pb-14">
+    <div className="min-h-screen flex flex-col pb-16">
       <main className="flex-1">
-        <Outlet />
+        <div className="mx-auto w-full max-w-lg">
+          <Outlet />
+        </div>
       </main>
-      <BottomNav items={navItems} />
+      <BottomNav items={navItems} variant="staff" />
     </div>
   );
 }

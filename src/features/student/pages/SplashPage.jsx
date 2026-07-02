@@ -1,10 +1,64 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../../../components/Button.jsx';
 import logo from '../../../assets/images/logo.svg';
 import splashIllustration from '../../../assets/images/splash-illustration.svg';
+import { getAppInfo, getDashboardSummary } from '../../../api/modules/utilsApi.js';
+import { useDarkMode } from '../../../utils/useDarkMode.js';
+
+const DEFAULT_STATS = [
+  { num: '2k+', label: 'Students' },
+  { num: '3', label: 'Meals/day' },
+  { num: '99%', label: 'Uptime' },
+];
 
 export default function SplashPage() {
+  const [isDark, toggleDark] = useDarkMode();
+  const [stats, setStats] = useState(DEFAULT_STATS);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchStats = async () => {
+      try {
+        const [appInfo, summary] = await Promise.allSettled([
+          getAppInfo(),
+          getDashboardSummary(),
+        ]);
+
+        if (cancelled) return;
+
+        const info = appInfo.status === 'fulfilled' ? appInfo.value : null;
+        const dash = summary.status === 'fulfilled' ? summary.value : null;
+
+        const studentCount = info?.student_count ?? info?.total_students ?? info?.users_count;
+        const mealCount = dash?.todays_meals ?? dash?.total_meals ?? dash?.meals_today ?? dash?.menu_items_today;
+
+        setStats([
+          {
+            num: studentCount != null
+              ? studentCount >= 1000
+                ? `${(studentCount / 1000).toFixed(studentCount < 10000 ? 1 : 0)}k+`
+                : `${studentCount}+`
+              : '2k+',
+            label: 'Students',
+          },
+          {
+            num: mealCount != null ? String(mealCount) : '3',
+            label: 'Meals/day',
+          },
+          { num: '99%', label: 'Uptime' },
+        ]);
+      } catch {
+        // silently keep defaults
+      } finally {
+        if (!cancelled) setStatsLoading(false);
+      }
+    };
+    fetchStats();
+    return () => { cancelled = true; };
+  }, []);
+
   const features = [
     {
       label: 'Digital mess wallet',
@@ -53,6 +107,16 @@ export default function SplashPage() {
         <img src={splashIllustration} alt="" className="h-full w-full object-cover" />
       </div>
 
+      {/* Dark mode toggle — top right */}
+      <button
+        type="button"
+        onClick={toggleDark}
+        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        className="absolute top-4 right-4 z-20 text-xl leading-none opacity-70 hover:opacity-100 transition-opacity"
+      >
+        {isDark ? '☀️' : '🌙'}
+      </button>
+
       <div className="relative z-10 flex flex-col items-center w-full">
 
         {/* University context pills */}
@@ -78,11 +142,15 @@ export default function SplashPage() {
         {/* Divider */}
         <div className="w-9 h-0.5 bg-white/20 rounded-full my-8" />
 
-        {/* Stats */}
+        {/* Stats — live from API, fallback to defaults */}
         <div className="flex gap-8 justify-center">
-          {[['2k+', 'Students'], ['3', 'Meals/day'], ['99%', 'Uptime']].map(([num, label]) => (
+          {stats.map(({ num, label }) => (
             <div key={label} className="text-center">
-              <p className="text-2xl font-semibold text-white">{num}</p>
+              {statsLoading ? (
+                <div className="h-7 w-12 rounded-md bg-white/20 animate-pulse mx-auto mb-1" />
+              ) : (
+                <p className="text-2xl font-semibold text-white">{num}</p>
+              )}
               <p className="text-[11px] text-white/60 uppercase tracking-wide mt-0.5">{label}</p>
             </div>
           ))}

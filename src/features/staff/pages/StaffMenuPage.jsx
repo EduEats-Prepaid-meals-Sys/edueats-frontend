@@ -191,10 +191,10 @@ export default function StaffMenuPage() {
         setDailyMenu((prev) => prev.filter((m) => (m.meal_id ?? m.id) !== id));
         setToast('Meal deleted from catalog', 'success');
       }
-      setDeletingTarget(null);
     } catch (err) {
       setToast(err?.message ?? 'Failed to delete item', 'error');
     } finally {
+      setDeletingTarget(null);
       setUpdatingId(null);
     }
   };
@@ -490,16 +490,19 @@ export default function StaffMenuPage() {
             onClick: () => setDeletingTarget(null),
           }}
           primaryAction={{
-            label:
-              updatingId === deletingTarget.id
-                ? deletingTarget.type === SECTIONS.catalog
-                  ? 'Deleting...'
-                  : 'Removing...'
-                : deletingTarget.type === SECTIONS.catalog
-                  ? 'Delete Meal'
-                  : 'Remove from Daily Menu',
+            label: (() => {
+              const busy = updatingId != null &&
+                (updatingId === deletingTarget.id ||
+                 updatingId === deletingTarget.dailyMenuId ||
+                 updatingId === deletingTarget.mealId);
+              if (busy) return deletingTarget.type === SECTIONS.catalog ? 'Deleting...' : 'Removing...';
+              return deletingTarget.type === SECTIONS.catalog ? 'Delete Meal' : 'Remove from Daily Menu';
+            })(),
             onClick: confirmDelete,
-            disabled: updatingId === deletingTarget.id,
+            disabled: updatingId != null &&
+              (updatingId === deletingTarget.id ||
+               updatingId === deletingTarget.dailyMenuId ||
+               updatingId === deletingTarget.mealId),
           }}
         >
           <p className="text-sm text-edueats-textMuted">
